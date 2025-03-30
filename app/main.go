@@ -1,38 +1,54 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	fmt.Fprintln(os.Stderr, "Logs from your program will appear here!")
+	logger := log.Default()
 
-	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "Usage: ./your_program.sh tokenize <filename>")
-		os.Exit(1)
+	tokenizeCmd := flag.NewFlagSet("tokenize", flag.ExitOnError)
+	filename := tokenizeCmd.String("file", "", "Input file to tokenize")
+
+	if len(os.Args) < 2 {
+		logger.Fatal("Missing arguments")
 	}
 
-	command := os.Args[1]
+	switch os.Args[1] {
+	case "tokenize":
+		{
+			tokenizeCmd.Parse(os.Args[2:])
+			if *filename == "" {
+				tokenizeCmd.PrintDefaults()
+				logger.Fatal("Error: -file flag is required")
+			}
 
-	if command != "tokenize" {
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
-		os.Exit(1)
+			_, err := readFile(*filename)
+			if err != nil {
+				logger.Fatalf("Failed to read file: %e", err)
+			}
+
+			logger.Fatal("Scanner not implemented")
+		}
+	default:
+		{
+			logger.Fatalf("Unknown command %s\n", os.Args[1])
+		}
+	}
+}
+
+func readFile(path string) ([]byte, error) {
+	fileBuf, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	// Uncomment this block to pass the first stage
-	//
-	// filename := os.Args[2]
-	// fileContents, err := os.ReadFile(filename)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
-	// 	os.Exit(1)
-	// }
-	//
-	// if len(fileContents) > 0 {
-	// 	panic("Scanner not implemented")
-	// } else {
-	// 	fmt.Println("EOF  null") // Placeholder, remove this line when implementing the scanner
-	// }
+	if len(fileBuf) == 0 {
+		return nil, fmt.Errorf("file %s must not be empty", path)
+	}
+
+	return fileBuf, nil
 }

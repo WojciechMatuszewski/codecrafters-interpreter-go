@@ -29,6 +29,10 @@ func main() {
 
 			err = lox.Run(file, os.Stdout)
 			if err != nil {
+				if errors.Is(err, UnexpectedTokensError) {
+					os.Exit(65)
+				}
+
 				logger.Fatalf("Failed to execute command: %v", err)
 			}
 		}
@@ -88,8 +92,11 @@ const (
 	VAR    TokenType = "var"
 	WHILE  TokenType = "while"
 
-	EOF TokenType = "EOF"
+	EOF     TokenType = "EOF"
+	NEWLINE TokenType = "\n"
 )
+
+var UnexpectedTokensError = errors.New("unexpected tokens found")
 
 type Lox struct{}
 
@@ -101,6 +108,8 @@ func (l *Lox) Run(r io.Reader, w io.Writer) error {
 	reader := bufio.NewReader(r)
 
 	output := ""
+	line := 1
+	hasErrors := false
 
 	for {
 		b, err := reader.ReadByte()
@@ -159,14 +168,25 @@ func (l *Lox) Run(r io.Reader, w io.Writer) error {
 			{
 				output += fmt.Sprintf("STAR %v null\n", STAR)
 			}
+		case string(NEWLINE):
+			{
+				line += 1
+			}
 		default:
-			return fmt.Errorf("token %v not implemented", token)
+			{
+				hasErrors = true
+				output += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
+			}
 		}
 	}
 
 	_, err := w.Write([]byte(output))
 	if err != nil {
 		return fmt.Errorf("failed to write: %w", err)
+	}
+
+	if hasErrors {
+		return UnexpectedTokensError
 	}
 
 	return nil

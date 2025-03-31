@@ -259,6 +259,10 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 func match(r *bufio.Reader, expected string) (bool, error) {
 	nextB, err := r.Peek(1)
 	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return false, nil
+		}
+
 		return false, fmt.Errorf("failed to peek: %w", err)
 	}
 

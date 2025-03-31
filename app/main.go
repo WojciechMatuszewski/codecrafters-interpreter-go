@@ -178,7 +178,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 					successOutput += fmt.Sprintf("BANG_EQUAL %v null\n", string(BANG_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("BANG %v null \n", string(BANG))
+					successOutput += fmt.Sprintf("BANG %v null\n", string(BANG))
 				}
 			}
 		case string(EQUAL):
@@ -191,7 +191,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 					successOutput += fmt.Sprintf("EQUAL_EQUAL %v null\n", string(EQUAL_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("EQUAL %v null \n", string(EQUAL))
+					successOutput += fmt.Sprintf("EQUAL %v null\n", string(EQUAL))
 				}
 			}
 		case string(LESS):
@@ -204,7 +204,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 					successOutput += fmt.Sprintf("LESS_EQUAL %v null\n", string(LESS_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("LESS %v null \n", string(LESS))
+					successOutput += fmt.Sprintf("LESS %v null\n", string(LESS))
 				}
 			}
 		case string(GREATER):
@@ -217,7 +217,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 					successOutput += fmt.Sprintf("GREATER_EQUAL %v null\n", string(GREATER_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("GREATER %v null \n", string(GREATER))
+					successOutput += fmt.Sprintf("GREATER %v null\n", string(GREATER))
 				}
 			}
 		case " ":

@@ -167,6 +167,59 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 			{
 				successOutput += fmt.Sprintf("STAR %v null\n", STAR)
 			}
+		case string(BANG):
+			{
+
+				matches, err := match(reader, string(EQUAL))
+				if err != nil {
+					return fmt.Errorf("failed to match next token: %w", err)
+				}
+				if matches {
+					successOutput += fmt.Sprintf("BANG_EQUAL %v null\n", string(BANG_EQUAL))
+					reader.ReadByte()
+				} else {
+					successOutput += fmt.Sprintf("BANG %v null \n", string(BANG))
+				}
+			}
+		case string(EQUAL):
+			{
+				matches, err := match(reader, string(EQUAL))
+				if err != nil {
+					return fmt.Errorf("failed to match next token: %w", err)
+				}
+				if matches {
+					successOutput += fmt.Sprintf("EQUAL_EQUAL %v null\n", string(EQUAL_EQUAL))
+					reader.ReadByte()
+				} else {
+					successOutput += fmt.Sprintf("EQUAL %v null \n", string(EQUAL))
+				}
+			}
+		case string(LESS):
+			{
+				matches, err := match(reader, string(EQUAL))
+				if err != nil {
+					return fmt.Errorf("failed to match next token: %w", err)
+				}
+				if matches {
+					successOutput += fmt.Sprintf("LESS_EQUAL %v null\n", string(LESS_EQUAL))
+					reader.ReadByte()
+				} else {
+					successOutput += fmt.Sprintf("LESS %v null \n", string(LESS))
+				}
+			}
+		case string(GREATER):
+			{
+				matches, err := match(reader, string(EQUAL))
+				if err != nil {
+					return fmt.Errorf("failed to match next token: %w", err)
+				}
+				if matches {
+					successOutput += fmt.Sprintf("GREATER_EQUAL %v null\n", string(GREATER_EQUAL))
+					reader.ReadByte()
+				} else {
+					successOutput += fmt.Sprintf("GREATER %v null \n", string(GREATER))
+				}
+			}
 		case " ":
 		case "\r":
 		case "\t":
@@ -201,4 +254,14 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 	}
 
 	return nil
+}
+
+func match(r *bufio.Reader, expected string) (bool, error) {
+	nextB, err := r.Peek(1)
+	if err != nil {
+		return false, fmt.Errorf("failed to peek: %w", err)
+	}
+
+	nextT := string(nextB)
+	return nextT == expected, nil
 }

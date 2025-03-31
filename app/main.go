@@ -27,9 +27,9 @@ func main() {
 				logger.Fatalf("Failed to read file: %v", err)
 			}
 
-			err = lox.Run(file, os.Stdout)
+			err = lox.Run(file, os.Stdout, os.Stderr)
 			if err != nil {
-				if errors.Is(err, UnexpectedTokensError) {
+				if errors.Is(err, ErrUnexpectedTokens) {
 					os.Exit(65)
 				}
 
@@ -92,11 +92,10 @@ const (
 	VAR    TokenType = "var"
 	WHILE  TokenType = "while"
 
-	EOF     TokenType = "EOF"
-	NEWLINE TokenType = "\n"
+	EOF TokenType = "EOF"
 )
 
-var UnexpectedTokensError = errors.New("unexpected tokens found")
+var ErrUnexpectedTokens = errors.New("unexpected tokens found")
 
 type Lox struct{}
 
@@ -104,18 +103,18 @@ func NewLox() *Lox {
 	return &Lox{}
 }
 
-func (l *Lox) Run(r io.Reader, w io.Writer) error {
+func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 	reader := bufio.NewReader(r)
 
-	output := ""
+	successOutput := ""
+	errOutput := ""
 	line := 1
-	hasErrors := false
 
 	for {
 		b, err := reader.ReadByte()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				output += "EOF  null\n"
+				successOutput += "EOF  null\n"
 				break
 			}
 
@@ -126,67 +125,79 @@ func (l *Lox) Run(r io.Reader, w io.Writer) error {
 		switch token {
 		case string(LEFT_BRACE):
 			{
-				output += fmt.Sprintf("LEFT_BRACE %v null\n", LEFT_BRACE)
+				successOutput += fmt.Sprintf("LEFT_BRACE %v null\n", LEFT_BRACE)
 			}
 		case string(RIGHT_BRACE):
 			{
-				output += fmt.Sprintf("RIGHT_BRACE %v null\n", RIGHT_BRACE)
+				successOutput += fmt.Sprintf("RIGHT_BRACE %v null\n", RIGHT_BRACE)
 			}
 		case string(LEFT_PAREN):
 			{
-				output += fmt.Sprintf("LEFT_PAREN %v null\n", LEFT_PAREN)
+				successOutput += fmt.Sprintf("LEFT_PAREN %v null\n", LEFT_PAREN)
 			}
 		case string(RIGHT_PAREN):
 			{
-				output += fmt.Sprintf("RIGHT_PAREN %v null\n", RIGHT_PAREN)
+				successOutput += fmt.Sprintf("RIGHT_PAREN %v null\n", RIGHT_PAREN)
 			}
 		case string(COMMA):
 			{
-				output += fmt.Sprintf("COMMA %v null\n", COMMA)
+				successOutput += fmt.Sprintf("COMMA %v null\n", COMMA)
 			}
 		case string(DOT):
 			{
-				output += fmt.Sprintf("DOT %v null\n", DOT)
+				successOutput += fmt.Sprintf("DOT %v null\n", DOT)
 			}
 		case string(MINUS):
 			{
-				output += fmt.Sprintf("MINUS %v null\n", MINUS)
+				successOutput += fmt.Sprintf("MINUS %v null\n", MINUS)
 			}
 		case string(PLUS):
 			{
-				output += fmt.Sprintf("PLUS %v null\n", PLUS)
+				successOutput += fmt.Sprintf("PLUS %v null\n", PLUS)
 			}
 		case string(SEMICOLON):
 			{
-				output += fmt.Sprintf("SEMICOLON %v null\n", SEMICOLON)
+				successOutput += fmt.Sprintf("SEMICOLON %v null\n", SEMICOLON)
 			}
 		case string(SLASH):
 			{
-				output += fmt.Sprintf("SLASH %v null\n", SLASH)
+				successOutput += fmt.Sprintf("SLASH %v null\n", SLASH)
 			}
 		case string(STAR):
 			{
-				output += fmt.Sprintf("STAR %v null\n", STAR)
+				successOutput += fmt.Sprintf("STAR %v null\n", STAR)
 			}
-		case string(NEWLINE):
+		case " ":
+		case "\r":
+		case "\t":
+			{
+				continue
+			}
+		case "\n":
 			{
 				line += 1
 			}
 		default:
 			{
-				hasErrors = true
-				output += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
+				errOutput += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
 			}
 		}
 	}
 
-	_, err := w.Write([]byte(output))
+	_, err := outW.Write([]byte(successOutput))
 	if err != nil {
 		return fmt.Errorf("failed to write: %w", err)
 	}
 
-	if hasErrors {
-		return UnexpectedTokensError
+	if errOutput != "" {
+		_, err := errW.Write([]byte(errOutput))
+		if err != nil {
+			return fmt.Errorf("failed to write: %w", err)
+		}
+	}
+
+	if errOutput != "" {
+		return ErrUnexpectedTokens
 	}
 
 	return nil

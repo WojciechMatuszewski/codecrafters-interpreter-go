@@ -166,7 +166,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 		case string(BANG):
 			{
 
-				matches, err := match(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, string(EQUAL))
 				if err != nil {
 					return fmt.Errorf("failed to match next token: %w", err)
 				}
@@ -179,7 +179,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 			}
 		case string(EQUAL):
 			{
-				matches, err := match(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, string(EQUAL))
 				if err != nil {
 					return fmt.Errorf("failed to match next token: %w", err)
 				}
@@ -192,7 +192,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 			}
 		case string(LESS):
 			{
-				matches, err := match(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, string(EQUAL))
 				if err != nil {
 					return fmt.Errorf("failed to match next token: %w", err)
 				}
@@ -205,7 +205,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 			}
 		case string(GREATER):
 			{
-				matches, err := match(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, string(EQUAL))
 				if err != nil {
 					return fmt.Errorf("failed to match next token: %w", err)
 				}
@@ -218,7 +218,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 			}
 		case string(SLASH):
 			{
-				matches, err := match(reader, string(SLASH))
+				matches, err := matchNextToken(reader, string(SLASH))
 				if err != nil {
 					return fmt.Errorf("failed to match next token: %w", err)
 				}
@@ -232,6 +232,33 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 					line += 1
 				} else {
 					successOutput += fmt.Sprintf("SLASH %v null\n", string(SLASH))
+				}
+			}
+		case "\"":
+			{
+				contents := ""
+				for {
+					bt, err := reader.ReadByte()
+					if err != nil {
+						if !errors.Is(err, io.EOF) {
+							return fmt.Errorf("failed to consume the string: %w", err)
+						}
+
+						errOutput += fmt.Sprintf("[line %v] Error: Unterminated string.\n", line)
+						break
+					}
+					st := string(bt)
+					if st == "\n" {
+						errOutput += fmt.Sprintf("[line %v] Error: Unterminated string.\n", line)
+						line += 1
+						break
+					}
+					if st == "\"" {
+						successOutput += fmt.Sprintf("STRING \"%v\" %v\n", contents, contents)
+						break
+					}
+
+					contents += st
 				}
 			}
 		case " ":
@@ -270,7 +297,7 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 	return nil
 }
 
-func match(r *bufio.Reader, expected string) (bool, error) {
+func matchNextToken(r *bufio.Reader, nextToken string) (bool, error) {
 	nextB, err := r.Peek(1)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
@@ -281,5 +308,5 @@ func match(r *bufio.Reader, expected string) (bool, error) {
 	}
 
 	nextT := string(nextB)
-	return nextT == expected, nil
+	return nextT == nextToken, nil
 }

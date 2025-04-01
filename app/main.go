@@ -247,12 +247,13 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 						errOutput += fmt.Sprintf("[line %v] Error: Unterminated string.\n", line)
 						break
 					}
+
 					st := string(bt)
 					if st == "\n" {
-						errOutput += fmt.Sprintf("[line %v] Error: Unterminated string.\n", line)
 						line += 1
-						break
+						continue
 					}
+
 					if st == "\"" {
 						successOutput += fmt.Sprintf("STRING \"%v\" %v\n", contents, contents)
 						break

@@ -1,4 +1,4 @@
-"foo baz"
-"foo
+"bar
 "foo
 "
+"bar

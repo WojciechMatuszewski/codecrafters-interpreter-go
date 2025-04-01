@@ -159,10 +159,6 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 			{
 				successOutput += fmt.Sprintf("SEMICOLON %v null\n", SEMICOLON)
 			}
-		case string(SLASH):
-			{
-				successOutput += fmt.Sprintf("SLASH %v null\n", SLASH)
-			}
 		case string(STAR):
 			{
 				successOutput += fmt.Sprintf("STAR %v null\n", STAR)
@@ -218,6 +214,21 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 					reader.ReadByte()
 				} else {
 					successOutput += fmt.Sprintf("GREATER %v null\n", string(GREATER))
+				}
+			}
+		case string(SLASH):
+			{
+				matches, err := match(reader, string(SLASH))
+				if err != nil {
+					return fmt.Errorf("failed to match next token: %w", err)
+				}
+				if matches {
+					_, err = reader.ReadString('\n')
+					if err != nil {
+						return fmt.Errorf("failed to consume rest of the comment: %w", err)
+					}
+				} else {
+					successOutput += fmt.Sprintf("SLASH %v null\n", string(SLASH))
 				}
 			}
 		case " ":

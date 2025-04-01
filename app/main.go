@@ -225,7 +225,9 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 				if matches {
 					_, err = reader.ReadString('\n')
 					if err != nil {
-						return fmt.Errorf("failed to consume rest of the comment: %w", err)
+						if !errors.Is(err, io.EOF) {
+							return fmt.Errorf("failed to consume rest of the comment: %w", err)
+						}
 					}
 				} else {
 					successOutput += fmt.Sprintf("SLASH %v null\n", string(SLASH))

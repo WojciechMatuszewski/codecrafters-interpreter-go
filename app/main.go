@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 )
 
 func main() {
@@ -274,7 +275,28 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 			}
 		default:
 			{
-				errOutput += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
+				if isDigit(token) {
+					contents := token
+
+					for isDigit(peekNext(reader)) {
+						b, _ := reader.ReadByte()
+						contents += string(b)
+					}
+
+					if peekNext(reader) == "." {
+						b, _ := reader.ReadByte()
+						contents += string(b)
+
+						for isDigit(peekNext(reader)) {
+							b, _ := reader.ReadByte()
+							contents += string(b)
+						}
+					}
+
+					successOutput += fmt.Sprintf("NUMBER %v %v\n", contents, contents)
+				} else {
+					errOutput += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
+				}
 			}
 		}
 	}
@@ -310,4 +332,26 @@ func matchNextToken(r *bufio.Reader, nextToken string) (bool, error) {
 
 	nextT := string(nextB)
 	return nextT == nextToken, nil
+}
+
+func isDigit(token string) bool {
+	_, err := strconv.Atoi(token)
+	return err == nil
+}
+
+func peekNext(r *bufio.Reader) string {
+	nextB, err := r.Peek(1)
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return ""
+		}
+
+		return ""
+	}
+
+	return string(nextB)
+}
+
+func consumeNumber(r *bufio.Reader) {
+
 }

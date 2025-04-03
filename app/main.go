@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -293,7 +294,12 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 						}
 					}
 
-					successOutput += fmt.Sprintf("NUMBER %v %v\n", contents, contents)
+					formatted, err := formatToDecimalString(contents)
+					if err != nil {
+						return err
+					}
+
+					successOutput += fmt.Sprintf("NUMBER %v %v\n", contents, formatted)
 				} else {
 					errOutput += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
 				}
@@ -352,6 +358,15 @@ func peekNext(r *bufio.Reader) string {
 	return string(nextB)
 }
 
-func consumeNumber(r *bufio.Reader) {
+func formatToDecimalString(value string) (string, error) {
+	num, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse number from string: %w", err)
+	}
 
+	if !strings.Contains(value, ".") {
+		return fmt.Sprintf("%.1f", num), nil
+	}
+
+	return value, nil
 }

@@ -351,11 +351,19 @@ func matchNextToken(r *bufio.Reader, nextToken string) (bool, error) {
 }
 
 func isDigit(token string) bool {
+	if len(token) == 0 {
+		return false
+	}
+
 	r := rune(token[0])
 	return unicode.IsDigit(r)
 }
 
 func isAlpha(token string) bool {
+	if len(token) == 0 {
+		return false
+	}
+
 	r := rune(token[0])
 	return unicode.IsLetter(r) || r == '_'
 }

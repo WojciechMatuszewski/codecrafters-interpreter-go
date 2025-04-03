@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 )
 
 func main() {
@@ -364,7 +363,7 @@ func formatToDecimalString(value string) (string, error) {
 		return "", fmt.Errorf("failed to parse number from string: %w", err)
 	}
 
-	if !strings.Contains(value, ".") {
+	if num == float64(int64(num)) {
 		return fmt.Sprintf("%.1f", num), nil
 	}
 

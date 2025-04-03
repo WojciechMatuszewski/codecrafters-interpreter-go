@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"unicode"
 )
 
 func main() {
@@ -299,6 +300,16 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 					}
 
 					successOutput += fmt.Sprintf("NUMBER %v %v\n", contents, formatted)
+				} else if isAlphaNumeric(token) {
+					contents := token
+
+					for isAlphaNumeric(peekNext(reader)) {
+						b, _ := reader.ReadByte()
+						contents += string(b)
+					}
+
+					successOutput += fmt.Sprintf("IDENTIFIER %v null\n", contents)
+
 				} else {
 					errOutput += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
 				}
@@ -340,8 +351,17 @@ func matchNextToken(r *bufio.Reader, nextToken string) (bool, error) {
 }
 
 func isDigit(token string) bool {
-	_, err := strconv.Atoi(token)
-	return err == nil
+	r := rune(token[0])
+	return unicode.IsDigit(r)
+}
+
+func isAlpha(token string) bool {
+	r := rune(token[0])
+	return unicode.IsLetter(r) || r == '_'
+}
+
+func isAlphaNumeric(token string) bool {
+	return isDigit(token) || isAlpha(token)
 }
 
 func peekNext(r *bufio.Reader) string {

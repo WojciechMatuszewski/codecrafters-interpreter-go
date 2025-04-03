@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
@@ -96,6 +97,26 @@ const (
 
 	EOF TokenType = "EOF"
 )
+
+// Map of keywords where key is the keyword string and value is the TokenType
+var keywords = map[string]TokenType{
+	"and":    AND,
+	"class":  CLASS,
+	"else":   ELSE,
+	"false":  FALSE,
+	"fun":    FUN,
+	"for":    FOR,
+	"if":     IF,
+	"nil":    NIL,
+	"or":     OR,
+	"print":  PRINT,
+	"return": RETURN,
+	"super":  SUPER,
+	"this":   THIS,
+	"true":   TRUE,
+	"var":    VAR,
+	"while":  WHILE,
+}
 
 var ErrUnexpectedTokens = errors.New("unexpected tokens found")
 
@@ -308,7 +329,12 @@ func (l *Lox) Run(r io.Reader, outW, errW io.Writer) error {
 						contents += string(b)
 					}
 
-					successOutput += fmt.Sprintf("IDENTIFIER %v null\n", contents)
+					_, found := keywords[contents]
+					if found {
+						successOutput += fmt.Sprintf("%v %v null\n", strings.ToUpper(contents), contents)
+					} else {
+						successOutput += fmt.Sprintf("IDENTIFIER %v null\n", contents)
+					}
 
 				} else {
 					errOutput += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)

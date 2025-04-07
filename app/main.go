@@ -25,6 +25,7 @@ func main() {
 			if err != nil {
 				logger.Fatalf("Failed to read file: %v", err)
 			}
+			defer file.Close()
 
 			err = l.Tokenize(file, os.Stdout, os.Stderr)
 			if err != nil {
@@ -34,6 +35,17 @@ func main() {
 
 				logger.Fatalf("Failed to execute command: %v", err)
 			}
+		}
+		// https://craftinginterpreters.com/representing-code.html#the-expression-problem
+	case "parse":
+		{
+			filePath := os.Args[2]
+			file, err := os.Open(filePath)
+			if err != nil {
+				logger.Fatalf("Failed to read file: %v", err)
+			}
+			defer file.Close()
+
 		}
 	default:
 		{

@@ -4,60 +4,60 @@ import (
 	"errors"
 )
 
-type TokenType string
+type Token string
 
 const (
 	// Single-character tokens
-	LEFT_PAREN  TokenType = "("
-	RIGHT_PAREN TokenType = ")"
-	LEFT_BRACE  TokenType = "{"
-	RIGHT_BRACE TokenType = "}"
-	COMMA       TokenType = ","
-	DOT         TokenType = "."
-	MINUS       TokenType = "-"
-	PLUS        TokenType = "+"
-	SEMICOLON   TokenType = ";"
-	SLASH       TokenType = "/"
-	STAR        TokenType = "*"
+	LEFT_PAREN  Token = "("
+	RIGHT_PAREN Token = ")"
+	LEFT_BRACE  Token = "{"
+	RIGHT_BRACE Token = "}"
+	COMMA       Token = ","
+	DOT         Token = "."
+	MINUS       Token = "-"
+	PLUS        Token = "+"
+	SEMICOLON   Token = ";"
+	SLASH       Token = "/"
+	STAR        Token = "*"
 
 	// One or two character tokens
-	BANG          TokenType = "!"
-	BANG_EQUAL    TokenType = "!="
-	EQUAL         TokenType = "="
-	EQUAL_EQUAL   TokenType = "=="
-	GREATER       TokenType = ">"
-	GREATER_EQUAL TokenType = ">="
-	LESS          TokenType = "<"
-	LESS_EQUAL    TokenType = "<="
+	BANG          Token = "!"
+	BANG_EQUAL    Token = "!="
+	EQUAL         Token = "="
+	EQUAL_EQUAL   Token = "=="
+	GREATER       Token = ">"
+	GREATER_EQUAL Token = ">="
+	LESS          Token = "<"
+	LESS_EQUAL    Token = "<="
 
 	// Literals (keeping descriptive names as they don't have single symbols)
-	IDENTIFIER TokenType = "IDENTIFIER"
-	STRING     TokenType = "STRING"
-	NUMBER     TokenType = "NUMBER"
+	IDENTIFIER Token = "IDENTIFIER"
+	STRING     Token = "STRING"
+	NUMBER     Token = "NUMBER"
 
 	// Keywords (using actual keywords)
-	AND    TokenType = "and"
-	CLASS  TokenType = "class"
-	ELSE   TokenType = "else"
-	FALSE  TokenType = "false"
-	FUN    TokenType = "fun"
-	FOR    TokenType = "for"
-	IF     TokenType = "if"
-	NIL    TokenType = "nil"
-	OR     TokenType = "or"
-	PRINT  TokenType = "print"
-	RETURN TokenType = "return"
-	SUPER  TokenType = "super"
-	THIS   TokenType = "this"
-	TRUE   TokenType = "true"
-	VAR    TokenType = "var"
-	WHILE  TokenType = "while"
+	AND    Token = "and"
+	CLASS  Token = "class"
+	ELSE   Token = "else"
+	FALSE  Token = "false"
+	FUN    Token = "fun"
+	FOR    Token = "for"
+	IF     Token = "if"
+	NIL    Token = "nil"
+	OR     Token = "or"
+	PRINT  Token = "print"
+	RETURN Token = "return"
+	SUPER  Token = "super"
+	THIS   Token = "this"
+	TRUE   Token = "true"
+	VAR    Token = "var"
+	WHILE  Token = "while"
 
-	EOF TokenType = "EOF"
+	EOF Token = "EOF"
 )
 
 // Map of keywords where key is the keyword string and value is the TokenType
-var keywords = map[string]TokenType{
+var keywords = map[string]Token{
 	"and":    AND,
 	"class":  CLASS,
 	"else":   ELSE,

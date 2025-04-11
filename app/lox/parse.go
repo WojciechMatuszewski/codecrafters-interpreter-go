@@ -1,6 +1,9 @@
 package lox
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 type Expr interface {
 	Accept(visitor ExprVisitor) any
@@ -52,43 +55,39 @@ func (u *UnaryExpr) Accept(visitor ExprVisitor) any {
 	return visitor.VisitUnaryExpr(u)
 }
 
-type PrinterVisitor struct{}
+func (l *Lox) Parse(r io.Reader) {
 
-func (p *PrinterVisitor) VisitBinaryExpr(expr *BinaryExpr) any {
-	return parenthesize(expr.Operator, p, expr.Left, expr.Right)
-}
-
-func (p *PrinterVisitor) VisitGroupingExpr(expr *GroupingExpr) any {
-	return parenthesize("group", p, expr.Expression)
-}
-
-func (p *PrinterVisitor) VisitLiteralExpr(expr *LiteralExpr) any {
-	return fmt.Sprintf("%v", expr.Value)
-}
-
-func (p *PrinterVisitor) VisitUnaryExpr(expr *UnaryExpr) any {
-	return parenthesize(expr.Operator, p, expr.Right)
-}
-
-func (l *Lox) Parse() {
 	expr := BinaryExpr{
-		Left: &UnaryExpr{
-			Operator: "-",
-			Right: &LiteralExpr{
-				Value: 123,
-			},
-		},
-		Right: &GroupingExpr{
-			Expression: &LiteralExpr{
-				Value: 45.67,
+		Left: &GroupingExpr{
+			Expression: &BinaryExpr{
+				Left: &LiteralExpr{
+					Value: 1,
+				},
+				Operator: "+",
+				Right: &LiteralExpr{
+					Value: 2,
+				},
 			},
 		},
 		Operator: "*",
+		Right: &GroupingExpr{
+			Expression: &BinaryExpr{
+				Left: &LiteralExpr{
+					Value: 4,
+				},
+				Operator: "-",
+				Right: &LiteralExpr{
+					Value: 3,
+				},
+			},
+		},
 	}
 
-	out := expr.Accept(&PrinterVisitor{})
+	outRegular := expr.Accept(&PrinterVisitor{})
+	outRPN := expr.Accept(&RPNPrinterVisitor{})
 
-	fmt.Println(out)
+	fmt.Println(outRegular)
+	fmt.Println(outRPN)
 
 }
 
@@ -101,4 +100,41 @@ func parenthesize(name string, visitor ExprVisitor, exprs ...Expr) string {
 	return output
 }
 
-// TODO: RPN printer
+type PrinterVisitor struct{}
+
+func (p *PrinterVisitor) VisitBinaryExpr(expr *BinaryExpr) any {
+	return fmt.Sprintf("%v %s %v", expr.Left.Accept(p), expr.Operator, expr.Right.Accept(p))
+}
+
+func (p *PrinterVisitor) VisitGroupingExpr(expr *GroupingExpr) any {
+	return parenthesize("group", p, expr.Expression)
+}
+
+func (p *PrinterVisitor) VisitLiteralExpr(expr *LiteralExpr) any {
+	return fmt.Sprintf("%v", expr.Value)
+}
+
+func (p *PrinterVisitor) VisitUnaryExpr(expr *UnaryExpr) any {
+	return fmt.Sprintf("%s %v", expr.Operator, expr.Right.Accept(p))
+}
+
+type RPNPrinterVisitor struct{}
+
+func (p *RPNPrinterVisitor) VisitBinaryExpr(expr *BinaryExpr) any {
+	left := expr.Left.Accept(p)
+	right := expr.Right.Accept(p)
+
+	return fmt.Sprintf("%v %v %s", left, right, expr.Operator)
+}
+
+func (p *RPNPrinterVisitor) VisitGroupingExpr(expr *GroupingExpr) any {
+	return fmt.Sprintf("%v", expr.Expression.Accept(p))
+}
+
+func (p *RPNPrinterVisitor) VisitLiteralExpr(expr *LiteralExpr) any {
+	return fmt.Sprintf("%v", expr.Value)
+}
+
+func (p *RPNPrinterVisitor) VisitUnaryExpr(expr *UnaryExpr) any {
+	return fmt.Sprintf("%s%v", expr.Operator, expr.Right.Accept(p))
+}

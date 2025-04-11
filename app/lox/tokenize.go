@@ -5,140 +5,152 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
-	"strings"
 	"unicode"
 )
 
-func (l *Lox) Tokenize(r io.Reader, outW, errW io.Writer) error {
+type ErrUnexpectedToken struct {
+	Message string
+	Line    int
+}
+
+func (e ErrUnexpectedToken) Error() string {
+	return fmt.Sprintf("[line %v] Error: %s\n", e.Line, e.Message)
+}
+
+type TokenizeResult struct {
+	Tokens []Token
+	Errors []ErrUnexpectedToken
+}
+
+func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 	reader := bufio.NewReader(r)
 
-	successOutput := ""
-	errOutput := ""
 	line := 1
+
+	var tokenErrors []ErrUnexpectedToken
+	var tokens []Token
 
 	for {
 		b, err := reader.ReadByte()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				successOutput += "EOF  null\n"
+				tokens = append(tokens, NewToken(EOF))
 				break
 			}
 
-			return fmt.Errorf("failed to read token: %w", err)
+			return TokenizeResult{}, fmt.Errorf("failed to read token: %w", err)
 		}
 
-		token := string(b)
-		switch token {
-		case string(LEFT_BRACE):
+		sb := string(b)
+		switch sb {
+		case TokenLexemes[LEFT_BRACE]:
 			{
-				successOutput += fmt.Sprintf("LEFT_BRACE %v null\n", LEFT_BRACE)
+				tokens = append(tokens, NewToken(LEFT_BRACE))
 			}
-		case string(RIGHT_BRACE):
+		case TokenLexemes[RIGHT_BRACE]:
 			{
-				successOutput += fmt.Sprintf("RIGHT_BRACE %v null\n", RIGHT_BRACE)
+				tokens = append(tokens, NewToken(RIGHT_BRACE))
 			}
-		case string(LEFT_PAREN):
+		case TokenLexemes[LEFT_PAREN]:
 			{
-				successOutput += fmt.Sprintf("LEFT_PAREN %v null\n", LEFT_PAREN)
+				tokens = append(tokens, NewToken(LEFT_PAREN))
 			}
-		case string(RIGHT_PAREN):
+		case TokenLexemes[RIGHT_PAREN]:
 			{
-				successOutput += fmt.Sprintf("RIGHT_PAREN %v null\n", RIGHT_PAREN)
+				tokens = append(tokens, NewToken(RIGHT_PAREN))
 			}
-		case string(COMMA):
+		case TokenLexemes[COMMA]:
 			{
-				successOutput += fmt.Sprintf("COMMA %v null\n", COMMA)
+				tokens = append(tokens, NewToken(COMMA))
 			}
-		case string(DOT):
+		case TokenLexemes[DOT]:
 			{
-				successOutput += fmt.Sprintf("DOT %v null\n", DOT)
+				tokens = append(tokens, NewToken(DOT))
 			}
-		case string(MINUS):
+		case TokenLexemes[MINUS]:
 			{
-				successOutput += fmt.Sprintf("MINUS %v null\n", MINUS)
+				tokens = append(tokens, NewToken(MINUS))
 			}
-		case string(PLUS):
+		case TokenLexemes[PLUS]:
 			{
-				successOutput += fmt.Sprintf("PLUS %v null\n", PLUS)
+				tokens = append(tokens, NewToken(PLUS))
 			}
-		case string(SEMICOLON):
+		case TokenLexemes[SEMICOLON]:
 			{
-				successOutput += fmt.Sprintf("SEMICOLON %v null\n", SEMICOLON)
+				tokens = append(tokens, NewToken(SEMICOLON))
 			}
-		case string(STAR):
+		case TokenLexemes[STAR]:
 			{
-				successOutput += fmt.Sprintf("STAR %v null\n", STAR)
+				tokens = append(tokens, NewToken(STAR))
 			}
-		case string(BANG):
+		case TokenLexemes[BANG]:
 			{
-
-				matches, err := matchNextToken(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, NewToken(EQUAL))
 				if err != nil {
-					return fmt.Errorf("failed to match next token: %w", err)
+					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					successOutput += fmt.Sprintf("BANG_EQUAL %v null\n", string(BANG_EQUAL))
+					tokens = append(tokens, NewToken(BANG_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("BANG %v null\n", string(BANG))
+					tokens = append(tokens, NewToken(BANG))
 				}
 			}
-		case string(EQUAL):
+		case TokenLexemes[EQUAL]:
 			{
-				matches, err := matchNextToken(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, NewToken(EQUAL))
 				if err != nil {
-					return fmt.Errorf("failed to match next token: %w", err)
+					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					successOutput += fmt.Sprintf("EQUAL_EQUAL %v null\n", string(EQUAL_EQUAL))
+					tokens = append(tokens, NewToken(EQUAL_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("EQUAL %v null\n", string(EQUAL))
+					tokens = append(tokens, NewToken(EQUAL))
 				}
 			}
-		case string(LESS):
+		case TokenLexemes[LESS]:
 			{
-				matches, err := matchNextToken(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, NewToken(EQUAL))
 				if err != nil {
-					return fmt.Errorf("failed to match next token: %w", err)
+					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					successOutput += fmt.Sprintf("LESS_EQUAL %v null\n", string(LESS_EQUAL))
+					tokens = append(tokens, NewToken(LESS_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("LESS %v null\n", string(LESS))
+					tokens = append(tokens, NewToken(LESS))
 				}
 			}
-		case string(GREATER):
+		case TokenLexemes[GREATER]:
 			{
-				matches, err := matchNextToken(reader, string(EQUAL))
+				matches, err := matchNextToken(reader, NewToken(EQUAL))
 				if err != nil {
-					return fmt.Errorf("failed to match next token: %w", err)
+					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					successOutput += fmt.Sprintf("GREATER_EQUAL %v null\n", string(GREATER_EQUAL))
+					tokens = append(tokens, NewToken(GREATER_EQUAL))
 					reader.ReadByte()
 				} else {
-					successOutput += fmt.Sprintf("GREATER %v null\n", string(GREATER))
+					tokens = append(tokens, NewToken(GREATER))
 				}
 			}
-		case string(SLASH):
+		case TokenLexemes[SLASH]:
 			{
-				matches, err := matchNextToken(reader, string(SLASH))
+				matches, err := matchNextToken(reader, NewToken(SLASH))
 				if err != nil {
-					return fmt.Errorf("failed to match next token: %w", err)
+					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
 					_, err = reader.ReadString('\n')
 					if err != nil {
 						if !errors.Is(err, io.EOF) {
-							return fmt.Errorf("failed to consume rest of the comment: %w", err)
+							return TokenizeResult{}, fmt.Errorf("failed to consume rest of the comment: %w", err)
 						}
 					}
 					line += 1
 				} else {
-					successOutput += fmt.Sprintf("SLASH %v null\n", string(SLASH))
+					tokens = append(tokens, NewToken(SLASH))
 				}
 			}
 		case "\"":
@@ -148,10 +160,10 @@ func (l *Lox) Tokenize(r io.Reader, outW, errW io.Writer) error {
 					bt, err := reader.ReadByte()
 					if err != nil {
 						if !errors.Is(err, io.EOF) {
-							return fmt.Errorf("failed to consume the string: %w", err)
+							return TokenizeResult{}, fmt.Errorf("failed to consume the string: %w", err)
 						}
 
-						errOutput += fmt.Sprintf("[line %v] Error: Unterminated string.\n", line)
+						tokenErrors = append(tokenErrors, ErrUnexpectedToken{Line: line, Message: "Unterminated string."})
 						break
 					}
 
@@ -162,7 +174,7 @@ func (l *Lox) Tokenize(r io.Reader, outW, errW io.Writer) error {
 					}
 
 					if st == "\"" {
-						successOutput += fmt.Sprintf("STRING \"%v\" %v\n", contents, contents)
+						tokens = append(tokens, NewStringToken(contents))
 						break
 					}
 
@@ -181,72 +193,73 @@ func (l *Lox) Tokenize(r io.Reader, outW, errW io.Writer) error {
 			}
 		default:
 			{
-				if isDigit(token) {
-					contents := token
+				if isDigit(sb) {
+					number := sb
 
 					for isDigit(peekNext(reader)) {
 						b, _ := reader.ReadByte()
-						contents += string(b)
+						number += string(b)
 					}
 
 					if peekNext(reader) == "." {
 						b, _ := reader.ReadByte()
-						contents += string(b)
+						number += string(b)
 
 						for isDigit(peekNext(reader)) {
 							b, _ := reader.ReadByte()
-							contents += string(b)
+							number += string(b)
 						}
 					}
 
-					formatted, err := formatToDecimalString(contents)
-					if err != nil {
-						return err
-					}
-
-					successOutput += fmt.Sprintf("NUMBER %v %v\n", contents, formatted)
-				} else if isAlphaNumeric(token) {
-					contents := token
+					tokens = append(tokens, NewNumberToken(number))
+				} else if isAlphaNumeric(sb) {
+					content := sb
 
 					for isAlphaNumeric(peekNext(reader)) {
 						b, _ := reader.ReadByte()
-						contents += string(b)
+						content += string(b)
 					}
 
-					_, found := keywords[contents]
+					keyword, found := Keywords[content]
 					if found {
-						successOutput += fmt.Sprintf("%v %v null\n", strings.ToUpper(contents), contents)
+						tokens = append(tokens, NewToken(keyword))
 					} else {
-						successOutput += fmt.Sprintf("IDENTIFIER %v null\n", contents)
+						tokens = append(tokens, NewIdentifierToken(content))
 					}
 
 				} else {
-					errOutput += fmt.Sprintf("[line %v] Error: Unexpected character: %v\n", line, token)
+					tokenErrors = append(tokenErrors, ErrUnexpectedToken{Line: line, Message: fmt.Sprintf("Unexpected character: %v", sb)})
 				}
 			}
 		}
 	}
 
-	_, err := outW.Write([]byte(successOutput))
-	if err != nil {
-		return fmt.Errorf("failed to write: %w", err)
-	}
+	return TokenizeResult{
+		Tokens: tokens,
+		Errors: tokenErrors,
+	}, nil
 
-	if errOutput != "" {
-		_, err := errW.Write([]byte(errOutput))
-		if err != nil {
-			return fmt.Errorf("failed to write: %w", err)
-		}
-	}
+	// for _, token := range tokens {
+	// 	_, err := outW.Write([]byte(token.String()))
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to write: %w", err)
+	// 	}
+	// }
 
-	if errOutput != "" {
-		return ErrUnexpectedTokens
-	}
+	// if len(tokenizeErrors) > 0 {
+	// 	errors := strings.Join(tokenizeErrors, "")
+	// 	_, err := errW.Write([]byte(errors))
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to write: %w", err)
+	// 	}
 
-	return nil
+	// 	return ErrUnexpectedTokens
+	// }
+
+	// return nil
 }
 
-func matchNextToken(r *bufio.Reader, nextToken string) (bool, error) {
+func matchNextToken(r *bufio.Reader, matchToken Token) (bool, error) {
 	nextB, err := r.Peek(1)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
@@ -256,34 +269,34 @@ func matchNextToken(r *bufio.Reader, nextToken string) (bool, error) {
 		return false, fmt.Errorf("failed to peek: %w", err)
 	}
 
-	nextT := string(nextB)
-	return nextT == nextToken, nil
+	nextLexme := string(nextB)
+	return nextLexme == *matchToken.Lexme, nil
 }
 
-func isDigit(token string) bool {
-	if len(token) == 0 {
+func isDigit(s string) bool {
+	if len(s) != 1 {
 		return false
 	}
 
-	r := rune(token[0])
+	r := rune(s[0])
 	return unicode.IsDigit(r)
 }
 
-func isAlpha(token string) bool {
-	if len(token) == 0 {
+func isAlpha(s string) bool {
+	if len(s) != 1 {
 		return false
 	}
 
-	r := rune(token[0])
+	r := rune(s[0])
 	return unicode.IsLetter(r) || r == '_'
 }
 
-func isAlphaNumeric(token string) bool {
-	return isDigit(token) || isAlpha(token)
+func isAlphaNumeric(s string) bool {
+	return isDigit(s) || isAlpha(s)
 }
 
 func peekNext(r *bufio.Reader) string {
-	nextB, err := r.Peek(1)
+	next, err := r.Peek(1)
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			return ""
@@ -292,18 +305,5 @@ func peekNext(r *bufio.Reader) string {
 		return ""
 	}
 
-	return string(nextB)
-}
-
-func formatToDecimalString(value string) (string, error) {
-	num, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse number from string: %w", err)
-	}
-
-	if num == float64(int64(num)) {
-		return fmt.Sprintf("%.1f", num), nil
-	}
-
-	return value, nil
+	return string(next)
 }

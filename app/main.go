@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"os"
 
@@ -27,16 +26,24 @@ func main() {
 			}
 			defer file.Close()
 
-			err = l.Tokenize(file, os.Stdout, os.Stderr)
+			result, err := l.Tokenize(file)
 			if err != nil {
-				if errors.Is(err, lox.ErrUnexpectedTokens) {
-					os.Exit(65)
-				}
-
 				logger.Fatalf("Failed to execute command: %v", err)
 			}
+
+			for _, token := range result.Tokens {
+				os.Stdout.Write([]byte(token.String()))
+			}
+
+			for _, tokenError := range result.Errors {
+				os.Stderr.Write([]byte(tokenError.Error()))
+			}
+
+			if len(result.Errors) > 0 {
+				os.Exit(65)
+			}
+
 		}
-		// https://craftinginterpreters.com/representing-code.html#the-expression-problem
 	case "parse":
 		{
 			filePath := os.Args[2]

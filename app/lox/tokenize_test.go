@@ -1,8 +1,6 @@
 package lox_test
 
 import (
-	"bytes"
-	"errors"
 	"strings"
 	"testing"
 
@@ -75,20 +73,30 @@ func TestTokenize(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			l := lox.NewLox()
-			var outBuf, errBuf bytes.Buffer
-			err := l.Tokenize(strings.NewReader(tt.input), &outBuf, &errBuf)
+
+			result, err := l.Tokenize(strings.NewReader(tt.input))
 			if err != nil {
-				if !errors.Is(err, lox.ErrUnexpectedTokens) || errors.Is(err, lox.ErrUnexpectedTokens) && tt.expectedErr == "" {
-					t.Errorf("unexpected error: %v", err)
-				}
+				t.Errorf("unexpected error: %v", err)
 			}
 
-			if errBuf.String() != tt.expectedErr {
-				t.Errorf("expected error %q, got %q", tt.expectedErr, errBuf.String())
+			if len(result.Errors) > 0 && tt.expectedErr == "" {
+				t.Errorf("unexpected tokenize errors: %v", result.Errors)
 			}
 
-			if outBuf.String() != tt.expectedOut {
-				t.Errorf("expected output %q, got %q", tt.expectedOut, outBuf.String())
+			out := ""
+			for _, token := range result.Tokens {
+				out += token.String()
+			}
+			if out != tt.expectedOut {
+				t.Errorf("\nexpected output:\n%q\ngot:\n%q\n", tt.expectedOut, out)
+			}
+
+			outErr := ""
+			for _, err := range result.Errors {
+				outErr += err.Error()
+			}
+			if outErr != tt.expectedErr {
+				t.Errorf("\nexpected error:\n%q\ngot:\n%q\n", tt.expectedErr, outErr)
 			}
 		})
 	}

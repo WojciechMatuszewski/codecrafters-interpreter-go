@@ -5,136 +5,152 @@ import (
 	"io"
 )
 
-type Expr interface {
-	Accept(visitor ExprVisitor) any
-}
-
-type ExprVisitor interface {
-	VisitBinaryExpr(expr *BinaryExpr) any
-	VisitGroupingExpr(expr *GroupingExpr) any
-	VisitLiteralExpr(expr *LiteralExpr) any
-	VisitUnaryExpr(expr *UnaryExpr) any
-}
-
-// Example: 2+3
-type BinaryExpr struct {
-	Left     Expr
-	Right    Expr
-	Operator string
-}
-
-func (b *BinaryExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitBinaryExpr(b)
-}
-
-// Example: (<EXPR>)
-type GroupingExpr struct {
-	Expression Expr
-}
-
-func (g *GroupingExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitGroupingExpr(g)
-}
-
-// Example: 3
-type LiteralExpr struct {
-	Value any
-}
-
-func (l *LiteralExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitLiteralExpr(l)
-}
-
-// Example: -x
-type UnaryExpr struct {
-	Right    Expr
-	Operator string
-}
-
-func (u *UnaryExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitUnaryExpr(u)
-}
-
-func (l *Lox) Parse(r io.Reader) {
-
-	expr := BinaryExpr{
-		Left: &GroupingExpr{
-			Expression: &BinaryExpr{
-				Left: &LiteralExpr{
-					Value: 1,
-				},
-				Operator: "+",
-				Right: &LiteralExpr{
-					Value: 2,
-				},
-			},
-		},
-		Operator: "*",
-		Right: &GroupingExpr{
-			Expression: &BinaryExpr{
-				Left: &LiteralExpr{
-					Value: 4,
-				},
-				Operator: "-",
-				Right: &LiteralExpr{
-					Value: 3,
-				},
-			},
-		},
+func (l *Lox) Parse(r io.Reader) error {
+	result, err := l.Tokenize(r)
+	if err != nil {
+		return err
 	}
 
-	outRegular := expr.Accept(&PrinterVisitor{})
-	outRPN := expr.Accept(&RPNPrinterVisitor{})
+	parser := newParser(result.Tokens)
+	expr := parser.parse()
 
-	fmt.Println(outRegular)
-	fmt.Println(outRPN)
+	visitor := PrinterVisitor{}
+	out := expr.Accept(&visitor)
+	fmt.Println(out)
 
+	return nil
 }
 
-func parenthesize(name string, visitor ExprVisitor, exprs ...Expr) string {
-	output := fmt.Sprintf("(%s", name)
-	for _, expr := range exprs {
-		output += fmt.Sprintf(" %v", expr.Accept(visitor))
+type parser struct {
+	tokens  []Token
+	current int
+}
+
+func newParser(tokens []Token) *parser {
+	return &parser{tokens: tokens, current: 0}
+}
+
+func (p *parser) parse() Expr {
+	return p.expression()
+}
+
+func (p *parser) expression() Expr {
+	return p.equality()
+}
+
+func (p *parser) equality() Expr {
+	expr := p.comparison()
+
+	for p.match(BANG_EQUAL, EQUAL_EQUAL) {
+		operator := p.previous()
+		right := p.comparison()
+		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
-	output += ")"
-	return output
+
+	return expr
 }
 
-type PrinterVisitor struct{}
+func (p *parser) comparison() Expr {
+	expr := p.term()
 
-func (p *PrinterVisitor) VisitBinaryExpr(expr *BinaryExpr) any {
-	return fmt.Sprintf("%v %s %v", expr.Left.Accept(p), expr.Operator, expr.Right.Accept(p))
+	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
+		operator := p.previous()
+		right := p.term()
+		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+	}
+
+	return expr
 }
 
-func (p *PrinterVisitor) VisitGroupingExpr(expr *GroupingExpr) any {
-	return parenthesize("group", p, expr.Expression)
+func (p *parser) match(tokenTypes ...TokenType) bool {
+	for _, tokenType := range tokenTypes {
+		if p.check(tokenType) {
+			p.advance()
+			return true
+		}
+	}
+
+	return false
 }
 
-func (p *PrinterVisitor) VisitLiteralExpr(expr *LiteralExpr) any {
-	return fmt.Sprintf("%v", expr.Value)
+func (p *parser) term() Expr {
+	expr := p.factor()
+
+	for p.match(MINUS, PLUS) {
+		operator := p.previous()
+		right := p.factor()
+		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+	}
+
+	return expr
 }
 
-func (p *PrinterVisitor) VisitUnaryExpr(expr *UnaryExpr) any {
-	return fmt.Sprintf("%s %v", expr.Operator, expr.Right.Accept(p))
+func (p *parser) factor() Expr {
+	expr := p.unary()
+
+	for p.match(SLASH, STAR) {
+		operator := p.previous()
+		right := p.unary()
+		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+	}
+
+	return expr
 }
 
-type RPNPrinterVisitor struct{}
+func (p *parser) unary() Expr {
+	if p.match(BANG, MINUS) {
+		operator := p.previous()
+		right := p.unary()
+		return &UnaryExpr{Operator: *operator.Lexme, Right: right}
+	}
 
-func (p *RPNPrinterVisitor) VisitBinaryExpr(expr *BinaryExpr) any {
-	left := expr.Left.Accept(p)
-	right := expr.Right.Accept(p)
-
-	return fmt.Sprintf("%v %v %s", left, right, expr.Operator)
+	return p.primary()
 }
 
-func (p *RPNPrinterVisitor) VisitGroupingExpr(expr *GroupingExpr) any {
-	return fmt.Sprintf("%v", expr.Expression.Accept(p))
+func (p *parser) primary() Expr {
+	if p.match(FALSE) {
+		return &LiteralExpr{Value: false}
+	}
+
+	if p.match(TRUE) {
+		return &LiteralExpr{Value: true}
+	}
+
+	if p.match(NIL) {
+		return &LiteralExpr{Value: NIL}
+	}
+
+	if p.match(NUMBER, STRING) {
+		return &LiteralExpr{Value: *p.previous().Literal}
+	}
+
+	panic("foo")
 }
 
-func (p *RPNPrinterVisitor) VisitLiteralExpr(expr *LiteralExpr) any {
-	return fmt.Sprintf("%v", expr.Value)
+func (p *parser) isAtEnd() bool {
+	return p.peek().Type == EOF
 }
 
-func (p *RPNPrinterVisitor) VisitUnaryExpr(expr *UnaryExpr) any {
-	return fmt.Sprintf("%s%v", expr.Operator, expr.Right.Accept(p))
+func (p *parser) check(tokenType TokenType) bool {
+	if p.isAtEnd() {
+		return false
+	}
+
+	return p.peek().Type == tokenType
+}
+
+func (p *parser) peek() Token {
+	return p.tokens[p.current]
+}
+
+func (p *parser) previous() Token {
+	return p.tokens[p.current-1]
+}
+
+func (p *parser) advance() Token {
+	if !p.isAtEnd() {
+		p.current += 1
+	}
+
+	return p.previous()
 }

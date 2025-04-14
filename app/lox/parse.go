@@ -108,6 +108,16 @@ func (p *parser) primary() Expr {
 		return &literalExpr{Value: *p.previous().Literal}
 	}
 
+	if p.match(LEFT_PAREN) {
+		expr := p.expression()
+		if p.match(RIGHT_PAREN) {
+			return &groupingExpr{Expression: expr}
+		}
+
+		panic("Unmatched parenthesis")
+
+	}
+
 	panic("Unhandled primary expression case")
 }
 

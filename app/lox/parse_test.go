@@ -1,21 +1,45 @@
 package lox_test
 
 import (
+	"bytes"
 	"testing"
+
+	"github.com/codecrafters-io/interpreter-starter-go/app/lox"
 )
 
 func TestParse(t *testing.T) {
-	t.Run("first", func(t *testing.T) {
-		// r := bytes.NewReader([]byte("true"))
+	tests := []struct {
+		input       string
+		expectedOut string
+	}{
+		{
+			input:       "(\"foo\")",
+			expectedOut: "(group foo)",
+		},
+		{
+			input:       "!true",
+			expectedOut: "(! true)",
+		},
+	}
 
-		// l := lox.NewLox()
-		// expr, err := l.Parse(r)
-		// if err != nil {
-		// 	t.Fatalf("Failed to parse: %v", err)
-		// }
+	visitor := lox.PrinterVisitor{}
 
-		// visitor := lox.PrinterVisitor{}
-		// out := expr.Accept(&visitor)
-		// fmt.Println(out)
-	})
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			r := bytes.NewReader([]byte(tt.input))
+
+			l := lox.NewLox()
+			expr, err := l.Parse(r)
+			if err != nil {
+				t.Fatalf("failed to parse\ninput: %v\nerror: %v", tt.input, err)
+			}
+
+			out := expr.Accept(&visitor)
+			if out != tt.expectedOut {
+				t.Errorf("\nexpected output:\n%q\ngot:\n%q\n", tt.expectedOut, out)
+			}
+
+		})
+	}
+
 }

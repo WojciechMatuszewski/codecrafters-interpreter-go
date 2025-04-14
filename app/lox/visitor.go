@@ -17,7 +17,7 @@ func (p *PrinterVisitor) visitLiteralExpr(expr *literalExpr) any {
 }
 
 func (p *PrinterVisitor) visitUnaryExpr(expr *unaryExpr) any {
-	return fmt.Sprintf("%s %v", expr.Operator, expr.Right.Accept(p))
+	return fmt.Sprintf("(%s %v)", expr.Operator, expr.Right.Accept(p))
 }
 
 type RPNPrinterVisitor struct{}

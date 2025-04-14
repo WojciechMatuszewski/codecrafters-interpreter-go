@@ -1,5 +1,7 @@
 package lox
 
+import "fmt"
+
 type Expr interface {
 	Accept(visitor ExprVisitor) any
 }
@@ -48,4 +50,10 @@ type UnaryExpr struct {
 
 func (u *UnaryExpr) Accept(visitor ExprVisitor) any {
 	return visitor.VisitUnaryExpr(u)
+}
+
+func PrintExpression(expr Expr) {
+	visitor := PrinterVisitor{}
+	out := expr.Accept(&visitor)
+	fmt.Println(out)
 }

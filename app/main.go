@@ -53,6 +53,12 @@ func main() {
 			}
 			defer file.Close()
 
+			expr, err := l.Parse(file)
+			if err != nil {
+				logger.Fatalf("Failed to parse the expression: %v", err)
+			}
+
+			lox.PrintExpression(expr)
 		}
 	default:
 		{

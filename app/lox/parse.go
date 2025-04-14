@@ -1,24 +1,19 @@
 package lox
 
 import (
-	"fmt"
 	"io"
 )
 
-func (l *Lox) Parse(r io.Reader) error {
+func (l *Lox) Parse(r io.Reader) (Expr, error) {
 	result, err := l.Tokenize(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	parser := newParser(result.Tokens)
 	expr := parser.parse()
 
-	visitor := PrinterVisitor{}
-	out := expr.Accept(&visitor)
-	fmt.Println(out)
-
-	return nil
+	return expr, nil
 }
 
 type parser struct {
@@ -60,17 +55,6 @@ func (p *parser) comparison() Expr {
 	}
 
 	return expr
-}
-
-func (p *parser) match(tokenTypes ...TokenType) bool {
-	for _, tokenType := range tokenTypes {
-		if p.check(tokenType) {
-			p.advance()
-			return true
-		}
-	}
-
-	return false
 }
 
 func (p *parser) term() Expr {
@@ -124,7 +108,18 @@ func (p *parser) primary() Expr {
 		return &LiteralExpr{Value: *p.previous().Literal}
 	}
 
-	panic("foo")
+	panic("Unhandled primary expression case")
+}
+
+func (p *parser) match(tokenTypes ...TokenType) bool {
+	for _, tokenType := range tokenTypes {
+		if p.check(tokenType) {
+			p.advance()
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *parser) isAtEnd() bool {

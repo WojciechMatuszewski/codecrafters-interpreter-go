@@ -5,7 +5,7 @@ import "fmt"
 type PrinterVisitor struct{}
 
 func (p *PrinterVisitor) visitBinaryExpr(expr *binaryExpr) any {
-	return fmt.Sprintf("%v %s %v", expr.Left.Accept(p), expr.Operator, expr.Right.Accept(p))
+	return fmt.Sprintf("(%v %s %v)", expr.Operator, expr.Left.Accept(p), expr.Right.Accept(p))
 }
 
 func (p *PrinterVisitor) visitGroupingExpr(expr *groupingExpr) any {

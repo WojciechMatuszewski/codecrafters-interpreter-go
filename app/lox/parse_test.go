@@ -20,6 +20,10 @@ func TestParse(t *testing.T) {
 			input:       "!true",
 			expectedOut: "(! true)",
 		},
+		{
+			input:       "16 * 38 / 58",
+			expectedOut: "(/ (* 16.0 38.0) 58.0)",
+		},
 	}
 
 	visitor := lox.PrinterVisitor{}

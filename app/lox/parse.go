@@ -39,7 +39,7 @@ func (p *parser) equality() Expr {
 	for p.match(BANG_EQUAL, EQUAL_EQUAL) {
 		operator := p.previous()
 		right := p.comparison()
-		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
 	return expr
@@ -51,7 +51,7 @@ func (p *parser) comparison() Expr {
 	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
 		operator := p.previous()
 		right := p.term()
-		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
 	return expr
@@ -63,7 +63,7 @@ func (p *parser) term() Expr {
 	for p.match(MINUS, PLUS) {
 		operator := p.previous()
 		right := p.factor()
-		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
 	return expr
@@ -75,7 +75,7 @@ func (p *parser) factor() Expr {
 	for p.match(SLASH, STAR) {
 		operator := p.previous()
 		right := p.unary()
-		expr = &BinaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
 	return expr
@@ -85,7 +85,7 @@ func (p *parser) unary() Expr {
 	if p.match(BANG, MINUS) {
 		operator := p.previous()
 		right := p.unary()
-		return &UnaryExpr{Operator: *operator.Lexme, Right: right}
+		return &unaryExpr{Operator: *operator.Lexme, Right: right}
 	}
 
 	return p.primary()
@@ -93,19 +93,19 @@ func (p *parser) unary() Expr {
 
 func (p *parser) primary() Expr {
 	if p.match(FALSE) {
-		return &LiteralExpr{Value: false}
+		return &literalExpr{Value: false}
 	}
 
 	if p.match(TRUE) {
-		return &LiteralExpr{Value: true}
+		return &literalExpr{Value: true}
 	}
 
 	if p.match(NIL) {
-		return &LiteralExpr{Value: NIL}
+		return &literalExpr{Value: "nil"}
 	}
 
 	if p.match(NUMBER, STRING) {
-		return &LiteralExpr{Value: *p.previous().Literal}
+		return &literalExpr{Value: *p.previous().Literal}
 	}
 
 	panic("Unhandled primary expression case")

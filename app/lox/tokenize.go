@@ -239,24 +239,6 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 		Errors: tokenErrors,
 	}, nil
 
-	// for _, token := range tokens {
-	// 	_, err := outW.Write([]byte(token.String()))
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to write: %w", err)
-	// 	}
-	// }
-
-	// if len(tokenizeErrors) > 0 {
-	// 	errors := strings.Join(tokenizeErrors, "")
-	// 	_, err := errW.Write([]byte(errors))
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to write: %w", err)
-	// 	}
-
-	// 	return ErrUnexpectedTokens
-	// }
-
-	// return nil
 }
 
 func matchNextToken(r *bufio.Reader, matchToken Token) (bool, error) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -58,7 +59,9 @@ func main() {
 				logger.Fatalf("Failed to parse the expression: %v", err)
 			}
 
-			lox.PrintExpression(expr)
+			printer := lox.PrinterVisitor{}
+			formatted := expr.Accept(&printer)
+			fmt.Fprint(os.Stdout, formatted)
 		}
 	default:
 		{

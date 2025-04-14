@@ -1,59 +1,51 @@
 package lox
 
-import "fmt"
-
 type Expr interface {
 	Accept(visitor ExprVisitor) any
 }
 
 type ExprVisitor interface {
-	VisitBinaryExpr(expr *BinaryExpr) any
-	VisitGroupingExpr(expr *GroupingExpr) any
-	VisitLiteralExpr(expr *LiteralExpr) any
-	VisitUnaryExpr(expr *UnaryExpr) any
+	visitBinaryExpr(expr *binaryExpr) any
+	visitGroupingExpr(expr *groupingExpr) any
+	visitLiteralExpr(expr *literalExpr) any
+	visitUnaryExpr(expr *unaryExpr) any
 }
 
 // Example: 2+3
-type BinaryExpr struct {
+type binaryExpr struct {
 	Left     Expr
 	Right    Expr
 	Operator string
 }
 
-func (b *BinaryExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitBinaryExpr(b)
+func (b *binaryExpr) Accept(visitor ExprVisitor) any {
+	return visitor.visitBinaryExpr(b)
 }
 
 // Example: (<EXPR>)
-type GroupingExpr struct {
+type groupingExpr struct {
 	Expression Expr
 }
 
-func (g *GroupingExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitGroupingExpr(g)
+func (g *groupingExpr) Accept(visitor ExprVisitor) any {
+	return visitor.visitGroupingExpr(g)
 }
 
 // Example: 3
-type LiteralExpr struct {
+type literalExpr struct {
 	Value any
 }
 
-func (l *LiteralExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitLiteralExpr(l)
+func (l *literalExpr) Accept(visitor ExprVisitor) any {
+	return visitor.visitLiteralExpr(l)
 }
 
 // Example: -x
-type UnaryExpr struct {
+type unaryExpr struct {
 	Right    Expr
 	Operator string
 }
 
-func (u *UnaryExpr) Accept(visitor ExprVisitor) any {
-	return visitor.VisitUnaryExpr(u)
-}
-
-func PrintExpression(expr Expr) {
-	visitor := PrinterVisitor{}
-	out := expr.Accept(&visitor)
-	fmt.Println(out)
+func (u *unaryExpr) Accept(visitor ExprVisitor) any {
+	return visitor.visitUnaryExpr(u)
 }

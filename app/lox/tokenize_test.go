@@ -12,10 +12,16 @@ func TestTokenize(t *testing.T) {
 		input       string
 		expectedOut string
 		expectedErr string
+		only        bool
 	}{
 		{
 			input:       "({*.,+*})",
 			expectedOut: "LEFT_PAREN ( null\nLEFT_BRACE { null\nSTAR * null\nDOT . null\nCOMMA , null\nPLUS + null\nSTAR * null\nRIGHT_BRACE } null\nRIGHT_PAREN ) null\nEOF  null\n",
+			expectedErr: "",
+		},
+		{
+			input:       "4043.6490",
+			expectedOut: "NUMBER 4043.6490 4043.649\nEOF  null\n",
 			expectedErr: "",
 		},
 		{
@@ -70,8 +76,19 @@ func TestTokenize(t *testing.T) {
 		},
 	}
 
+	focusedTest := false
+	for _, tt := range tests {
+		if tt.only {
+			focusedTest = true
+		}
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
+			if focusedTest && !tt.only {
+				t.Skip()
+			}
+
 			l := lox.NewLox()
 
 			result, err := l.Tokenize(strings.NewReader(tt.input))

@@ -3,6 +3,7 @@ package lox
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type TokenType string
@@ -195,6 +196,15 @@ func formatToDecimalString(value string) (string, error) {
 
 	if num == float64(int64(num)) {
 		return fmt.Sprintf("%.1f", num), nil
+	}
+
+	parts := strings.Split(value, ".")
+	if len(parts) < 2 {
+		return value, nil
+	}
+
+	if len(parts[1]) > 2 {
+		return fmt.Sprintf("%v", num), nil
 	}
 
 	return value, nil

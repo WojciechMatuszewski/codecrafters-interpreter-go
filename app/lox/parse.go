@@ -1,19 +1,28 @@
 package lox
 
 import (
+	"fmt"
 	"io"
 )
 
-func (l *Lox) Parse(r io.Reader) (Expr, error) {
+type SyntaxError struct {
+	line    int
+	message string
+}
+
+func (se SyntaxError) Error() string {
+	return fmt.Sprintf("[line %v] %v", se.line, se.message)
+}
+
+func (l *Lox) Parse(r io.Reader) (Expression, error) {
 	result, err := l.Tokenize(r)
 	if err != nil {
 		return nil, err
 	}
-
 	parser := newParser(result.Tokens)
-	expr := parser.parse()
+	expr, err := parser.parse()
 
-	return expr, nil
+	return expr, err
 }
 
 type parser struct {
@@ -25,100 +34,131 @@ func newParser(tokens []Token) *parser {
 	return &parser{tokens: tokens, current: 0}
 }
 
-func (p *parser) parse() Expr {
+func (p *parser) parse() (Expression, error) {
+	p.current = 0
 	return p.expression()
 }
 
-func (p *parser) expression() Expr {
+func (p *parser) expression() (Expression, error) {
 	return p.equality()
 }
 
-func (p *parser) equality() Expr {
-	expr := p.comparison()
+func (p *parser) equality() (Expression, error) {
+	expr, err := p.comparison()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(BANG_EQUAL, EQUAL_EQUAL) {
 		operator := p.previous()
-		right := p.comparison()
-		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		right, err := p.comparison()
+		if err != nil {
+			return nil, err
+		}
+		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *parser) comparison() Expr {
-	expr := p.term()
+func (p *parser) comparison() (Expression, error) {
+	expr, err := p.term()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
 		operator := p.previous()
-		right := p.term()
-		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		right, err := p.term()
+		if err != nil {
+			return nil, err
+		}
+		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *parser) term() Expr {
-	expr := p.factor()
+func (p *parser) term() (Expression, error) {
+	expr, err := p.factor()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(MINUS, PLUS) {
 		operator := p.previous()
-		right := p.factor()
-		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		right, err := p.factor()
+		if err != nil {
+			return nil, err
+		}
+		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *parser) factor() Expr {
-	expr := p.unary()
+func (p *parser) factor() (Expression, error) {
+	expr, err := p.unary()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(SLASH, STAR) {
 		operator := p.previous()
-		right := p.unary()
-		expr = &binaryExpr{Left: expr, Operator: *operator.Lexme, Right: right}
+		right, err := p.unary()
+		if err != nil {
+			return nil, err
+		}
+		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *parser) unary() Expr {
+func (p *parser) unary() (Expression, error) {
 	if p.match(BANG, MINUS) {
 		operator := p.previous()
-		right := p.unary()
-		return &unaryExpr{Operator: *operator.Lexme, Right: right}
+		right, err := p.unary()
+		if err != nil {
+			return nil, err
+		}
+		return &unaryExpression{Operator: *operator.Lexme, Right: right}, nil
 	}
 
 	return p.primary()
 }
 
-func (p *parser) primary() Expr {
+func (p *parser) primary() (Expression, error) {
 	if p.match(FALSE) {
-		return &literalExpr{Value: false}
+		return &literalExpression{Value: false}, nil
 	}
 
 	if p.match(TRUE) {
-		return &literalExpr{Value: true}
+		return &literalExpression{Value: true}, nil
 	}
 
 	if p.match(NIL) {
-		return &literalExpr{Value: "nil"}
+		return &literalExpression{Value: "nil"}, nil
 	}
 
 	if p.match(NUMBER, STRING) {
-		return &literalExpr{Value: *p.previous().Literal}
+		return &literalExpression{Value: *p.previous().Literal}, nil
 	}
 
 	if p.match(LEFT_PAREN) {
-		expr := p.expression()
-		if p.match(RIGHT_PAREN) {
-			return &groupingExpr{Expression: expr}
+		expr, err := p.expression()
+		if err != nil {
+			return nil, SyntaxError{line: 1, message: "Error at ')': Expect expression."}
 		}
 
-		panic("Unmatched parenthesis")
+		if p.match(RIGHT_PAREN) {
+			return &groupingExpression{Expression: expr}, nil
+		}
 
+		return nil, SyntaxError{line: 1, message: "Error at ')': Expect expression."}
 	}
 
-	panic("Unhandled primary expression case")
+	return nil, SyntaxError{line: 1, message: "Expect expression."}
 }
 
 func (p *parser) match(tokenTypes ...TokenType) bool {

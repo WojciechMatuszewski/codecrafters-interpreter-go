@@ -194,16 +194,19 @@ func formatToDecimalString(value string) (string, error) {
 		return "", fmt.Errorf("failed to parse number from string: %w", err)
 	}
 
-	if num == float64(int64(num)) {
+	parts := strings.Split(value, ".")
+	hasFractional := len(parts) == 2
+	if !hasFractional {
 		return fmt.Sprintf("%.1f", num), nil
 	}
 
-	parts := strings.Split(value, ".")
-	if len(parts) < 2 {
-		return value, nil
+	hasOnlyZeroFractional := num == float64(int(num))
+	if hasOnlyZeroFractional {
+		return fmt.Sprintf("%.1f", num), nil
 	}
 
-	if len(parts[1]) > 2 {
+	fractional := parts[1]
+	if len(fractional) > 2 {
 		return fmt.Sprintf("%v", num), nil
 	}
 

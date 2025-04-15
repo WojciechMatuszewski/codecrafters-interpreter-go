@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -56,12 +57,15 @@ func main() {
 
 			expr, err := l.Parse(file)
 			if err != nil {
-				logger.Fatalf("Failed to parse the expression: %v", err)
+				if errors.As(err, &lox.SyntaxError{}) {
+					fmt.Fprint(os.Stderr, err.Error())
+					os.Exit(65)
+				}
+
+				logger.Fatalf("Failed to parse the file: %v", err)
 			}
 
-			printer := lox.PrinterVisitor{}
-			formatted := expr.Accept(&printer)
-			fmt.Fprint(os.Stdout, formatted)
+			fmt.Fprint(os.Stdout, lox.FormatExpression(expr))
 		}
 	default:
 		{

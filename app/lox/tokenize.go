@@ -8,18 +8,18 @@ import (
 	"unicode"
 )
 
-type ErrUnexpectedToken struct {
+type UnexpectedTokenError struct {
 	Message string
 	Line    int
 }
 
-func (e ErrUnexpectedToken) Error() string {
+func (e UnexpectedTokenError) Error() string {
 	return fmt.Sprintf("[line %v] Error: %s\n", e.Line, e.Message)
 }
 
 type TokenizeResult struct {
 	Tokens []Token
-	Errors []ErrUnexpectedToken
+	Errors []UnexpectedTokenError
 }
 
 func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
@@ -27,7 +27,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 
 	line := 1
 
-	var tokenErrors []ErrUnexpectedToken
+	var tokenErrors []UnexpectedTokenError
 	var tokens []Token
 
 	for {
@@ -163,7 +163,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 							return TokenizeResult{}, fmt.Errorf("failed to consume the string: %w", err)
 						}
 
-						tokenErrors = append(tokenErrors, ErrUnexpectedToken{Line: line, Message: "Unterminated string."})
+						tokenErrors = append(tokenErrors, UnexpectedTokenError{Line: line, Message: "Unterminated string."})
 						break
 					}
 
@@ -228,7 +228,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 					}
 
 				} else {
-					tokenErrors = append(tokenErrors, ErrUnexpectedToken{Line: line, Message: fmt.Sprintf("Unexpected character: %v", sb)})
+					tokenErrors = append(tokenErrors, UnexpectedTokenError{Line: line, Message: fmt.Sprintf("Unexpected character: %v", sb)})
 				}
 			}
 		}

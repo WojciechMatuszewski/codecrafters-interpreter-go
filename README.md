@@ -33,3 +33,18 @@ This challenge follows the book
   - The implementation is recursive, and it is similar to _depth-first traversal_.
 
     - Instead of visiting pre-existing nodes, we _construct_ them by "visiting" expressions.
+
+- Its interesting to me that, in Go, you have different naming convention for "error types" and "error variables". [Direct link](https://go.dev/wiki/Errors#naming)
+
+  > Error types end in "Error" and error variables start with "Err" or "err".
+
+  Here is what it means in practice:
+
+  ```go
+    var ErrNotFound = errors.New("not found")
+
+    type MyCustomError struct {
+      line int
+      message string
+    }
+  ```

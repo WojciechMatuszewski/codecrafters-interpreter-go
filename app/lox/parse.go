@@ -142,7 +142,7 @@ func (p *parser) primary() (Expression, error) {
 	}
 
 	if p.match(NUMBER, STRING) {
-		return &literalExpression{Value: *p.previous().Literal}, nil
+		return &literalExpression{Value: p.previous().Literal}, nil
 	}
 
 	if p.match(LEFT_PAREN) {

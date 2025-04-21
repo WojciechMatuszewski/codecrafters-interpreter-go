@@ -126,7 +126,7 @@ var Keywords = map[string]TokenType{
 type Token struct {
 	Type    TokenType
 	Lexme   *string
-	Literal *string
+	Literal any
 }
 
 func NewToken(tokenType TokenType) Token {
@@ -148,7 +148,7 @@ func NewStringToken(value string) Token {
 	return Token{
 		Type:    STRING,
 		Lexme:   &lexme,
-		Literal: &value,
+		Literal: value,
 	}
 }
 
@@ -161,15 +161,15 @@ func NewIdentifierToken(value string) Token {
 }
 
 func NewNumberToken(value string) Token {
-	literal, err := formatToDecimalString(value)
+	literal, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		panic(fmt.Errorf("could not parse number to literal: %w", err))
+		panic(err)
 	}
 
 	return Token{
 		Type:    NUMBER,
 		Lexme:   &value,
-		Literal: &literal,
+		Literal: literal,
 	}
 }
 
@@ -180,11 +180,21 @@ func (t Token) String() string {
 	}
 
 	literal := "null"
-	if t.Literal != nil {
-		literal = *t.Literal
+	if t.Literal == nil {
+		return fmt.Sprintf("%v %v %v\n", t.Type, lexme, literal)
 	}
 
-	return fmt.Sprintf("%v %v %v\n", t.Type, lexme, literal)
+	literal = fmt.Sprintf("%v", t.Literal)
+	if t.Type != NUMBER {
+		return fmt.Sprintf("%v %v %v\n", t.Type, lexme, literal)
+	}
+
+	formatted, err := formatToDecimalString(lexme)
+	if err != nil {
+		panic(fmt.Errorf("could not parse number to literal: %w", err))
+	}
+
+	return fmt.Sprintf("%v %v %v\n", t.Type, lexme, formatted)
 }
 
 func formatToDecimalString(value string) (string, error) {

@@ -2,6 +2,7 @@ package lox_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/codecrafters-io/interpreter-starter-go/app/lox"
@@ -15,7 +16,7 @@ func TestEvaluate(t *testing.T) {
 	}{
 		{
 			input:       "10",
-			expectedOut: "10.0",
+			expectedOut: "10",
 			expectedErr: "",
 		},
 		{
@@ -35,7 +36,7 @@ func TestEvaluate(t *testing.T) {
 			r := bytes.NewReader([]byte(tt.input))
 
 			l := lox.NewLox()
-			out := l.Evaluate(r)
+			out := fmt.Sprintf("%v", l.Evaluate(r))
 
 			if out != tt.expectedOut {
 				t.Errorf("\nexpected output:\n%q\ngot:\n%q\n", tt.expectedOut, out)

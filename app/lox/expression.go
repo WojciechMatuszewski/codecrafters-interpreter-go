@@ -69,7 +69,17 @@ func (p *printer) visitGroupingExpression(expr *groupingExpression) any {
 }
 
 func (p *printer) visitLiteralExpression(expr *literalExpression) any {
-	return fmt.Sprintf("%v", expr.Value)
+	switch n := expr.Value.(type) {
+	case float64:
+		{
+			return fmt.Sprintf("%.1f", n)
+		}
+	default:
+		{
+			return fmt.Sprintf("%v", expr.Value)
+		}
+	}
+
 }
 
 func (p *printer) visitUnaryExpression(expr *unaryExpression) any {

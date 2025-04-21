@@ -25,6 +25,11 @@ func TestTokenize(t *testing.T) {
 			expectedErr: "",
 		},
 		{
+			input:       "10.40",
+			expectedOut: "NUMBER 10.40 10.4\nEOF  null\n",
+			expectedErr: "",
+		},
+		{
 			input:       "and",
 			expectedOut: "AND and null\nEOF  null\n",
 			expectedErr: "",

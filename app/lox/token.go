@@ -3,7 +3,6 @@ package lox
 import (
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 type TokenType string
@@ -164,7 +163,7 @@ func NewIdentifierToken(value string) Token {
 func NewNumberToken(value string) Token {
 	literal, err := formatToDecimalString(value)
 	if err != nil {
-		panic(fmt.Errorf("could nit parse number to lexme: %w", err))
+		panic(fmt.Errorf("could not parse number to literal: %w", err))
 	}
 
 	return Token{
@@ -194,21 +193,9 @@ func formatToDecimalString(value string) (string, error) {
 		return "", fmt.Errorf("failed to parse number from string: %w", err)
 	}
 
-	parts := strings.Split(value, ".")
-	hasFractional := len(parts) == 2
-	if !hasFractional {
+	if num == float64(int(num)) {
 		return fmt.Sprintf("%.1f", num), nil
 	}
 
-	hasOnlyZeroFractional := num == float64(int(num))
-	if hasOnlyZeroFractional {
-		return fmt.Sprintf("%.1f", num), nil
-	}
-
-	fractional := parts[1]
-	if len(fractional) > 2 {
-		return fmt.Sprintf("%v", num), nil
-	}
-
-	return value, nil
+	return fmt.Sprintf("%v", num), nil
 }

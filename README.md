@@ -48,3 +48,27 @@ This challenge follows the book
       message string
     }
   ```
+
+- Go generics are not as powerful as the TypeScript type system.
+
+  - _Type inference_ is quite powerful in TypeScript. In Go, I found myself often having to specify the type explicitly.
+
+  - There are no "default type parameters" in Go. You can't do the following:
+
+    ```ts
+    type Foo<V = number> = V;
+    ```
+
+  Having said that, I like how _type constraints_ work in Go. In my humble opinion, the syntax is much more readable.
+
+  ```go
+  type additive interface {
+    string | int | float32 | float64
+  }
+
+  func add[V additive](a, b V) V {
+    return a + b
+  }
+  ```
+
+  There is an [experimental 'constraints' package you can use as well!](https://pkg.go.dev/golang.org/x/exp/constraints)

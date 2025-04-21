@@ -54,7 +54,7 @@ func evaluate(filePath string) {
 	defer file.Close()
 
 	l := lox.NewLox()
-	l.Evaluate(file)
+	fmt.Fprint(os.Stdout, l.Evaluate(file))
 }
 
 func parse(filePath string) {

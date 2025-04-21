@@ -72,7 +72,11 @@ func (p *printer) visitLiteralExpression(expr *literalExpression) any {
 	switch n := expr.Value.(type) {
 	case float64:
 		{
-			return fmt.Sprintf("%.1f", n)
+			if n == float64(int(n)) {
+				return fmt.Sprintf("%.1f", n)
+			}
+
+			return fmt.Sprintf("%v", n)
 		}
 	default:
 		{

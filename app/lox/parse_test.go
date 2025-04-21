@@ -19,6 +19,16 @@ func TestParse(t *testing.T) {
 			expectedErr: "",
 		},
 		{
+			input:       "(12.999)",
+			expectedOut: "(group 12.999)",
+			expectedErr: "",
+		},
+		{
+			input:       "(12.87)",
+			expectedOut: "(group 12.87)",
+			expectedErr: "",
+		},
+		{
 			input:       "!true",
 			expectedOut: "(! true)",
 			expectedErr: "",

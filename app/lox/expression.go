@@ -80,6 +80,10 @@ func (p *printer) visitLiteralExpression(expr *literalExpression) any {
 		}
 	default:
 		{
+			if expr.Value == nil {
+				return "nil"
+			}
+
 			return fmt.Sprintf("%v", expr.Value)
 		}
 	}

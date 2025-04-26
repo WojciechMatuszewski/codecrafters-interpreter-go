@@ -39,6 +39,21 @@ func TestEvaluate(t *testing.T) {
 			expectedOut: "true",
 			expectedErr: "",
 		},
+		{
+			input:       "-73",
+			expectedOut: "-73",
+			expectedErr: "",
+		},
+		{
+			input:       "!true",
+			expectedOut: "false",
+			expectedErr: "",
+		},
+		{
+			input:       "!10.40",
+			expectedOut: "false",
+			expectedErr: "",
+		},
 	}
 
 	for _, tt := range tests {

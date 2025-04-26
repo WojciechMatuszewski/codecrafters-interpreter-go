@@ -69,6 +69,10 @@ func (e *evaluator) visitUnaryExpression(expr *unaryExpression) any {
 		{
 			return mustAdditive(value)
 		}
+	case TokenLexemes[BANG]:
+		{
+			return !isTruthy(value)
+		}
 	default:
 		{
 			return nil
@@ -77,14 +81,14 @@ func (e *evaluator) visitUnaryExpression(expr *unaryExpression) any {
 }
 
 func mustFloat64(v any) float64 {
-	switch n := v.(type) {
+	switch v := v.(type) {
 	case float64:
 		{
-			return n
+			return v
 		}
 	case string:
 		{
-			num, err := strconv.ParseFloat(v.(string), 64)
+			num, err := strconv.ParseFloat(v, 64)
 			if err != nil {
 				panic(err)
 			}
@@ -93,45 +97,62 @@ func mustFloat64(v any) float64 {
 		}
 	default:
 		{
-			panic("value is neither a float64 nor a string")
+			panic(fmt.Sprintf("Value %v is not string or float64", v))
 		}
 	}
 
 }
 
 func mustAdditive(v any) any {
-	switch value := v.(type) {
+	switch v := v.(type) {
 	case string:
 		{
-			num, err := strconv.ParseFloat(value, 64)
+			num, err := strconv.ParseFloat(v, 64)
 			if err != nil {
-				return value
+				return v
 			}
 
 			return num
 		}
 	case float64:
 		{
-			return value
+			return v
 		}
 	default:
 		{
-			panic("value is not additive")
+			panic(fmt.Sprintf("Value %v is not string or float64", v))
 		}
 	}
 }
 
 func add(left, right any) (any, error) {
-	switch l := left.(type) {
+	switch lv := left.(type) {
 	case float64:
 		if r, ok := right.(float64); ok {
-			return l + r, nil
+			return lv + r, nil
 		}
 	case string:
 		if r, ok := right.(string); ok {
-			return l + r, nil
+			return lv + r, nil
 		}
 	}
 
 	return nil, fmt.Errorf("unsupported operand types for +: %T and %T", left, right)
+}
+
+func isTruthy(v any) bool {
+	if v == nil {
+		return false
+	}
+
+	switch v := v.(type) {
+	case bool:
+		{
+			return v
+		}
+	default:
+		{
+			return true
+		}
+	}
 }

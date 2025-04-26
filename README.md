@@ -72,3 +72,29 @@ This challenge follows the book
   ```
 
   There is an [experimental 'constraints' package you can use as well!](https://pkg.go.dev/golang.org/x/exp/constraints)
+
+- The _type switch_ syntax in Go is quite interesting to me.
+
+  ```go
+  func someFunc(v any) {
+    switch v := v.(type) {
+      case string: {
+        // stuff
+      }
+      default: {
+        // stuff
+      }
+    }
+  }
+  ```
+
+  Notice that we _switch_ on the type, but assign the value. I'm used to switching on what is on the left of the switch assignment statement, like so
+
+  ```js
+  switch ("foo") {
+    case "foo": {
+    }
+    case "bar": {
+    }
+  }
+  ```

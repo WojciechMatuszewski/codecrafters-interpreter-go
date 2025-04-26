@@ -61,7 +61,7 @@ func evaluate(filePath string) {
 		// I could not find any formatting verbs to format is as just "nil"
 		fmt.Fprint(os.Stdout, "nil")
 	} else {
-		fmt.Fprint(os.Stdout, l.Evaluate(file))
+		fmt.Fprint(os.Stdout, out)
 	}
 
 }

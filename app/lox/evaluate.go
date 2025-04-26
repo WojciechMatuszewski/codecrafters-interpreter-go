@@ -28,7 +28,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) any {
 		}
 	case TokenLexemes[PLUS]:
 		{
-			sum, err := add(mustAdditive(left), mustAdditive(right))
+			sum, err := add(left, right)
 			if err != nil {
 				panic(err)
 			}
@@ -67,7 +67,7 @@ func (e *evaluator) visitUnaryExpression(expr *unaryExpression) any {
 		}
 	case TokenLexemes[PLUS]:
 		{
-			return mustAdditive(value)
+			return value
 		}
 	case TokenLexemes[BANG]:
 		{
@@ -103,37 +103,15 @@ func mustFloat64(v any) float64 {
 
 }
 
-func mustAdditive(v any) any {
-	switch v := v.(type) {
-	case string:
-		{
-			num, err := strconv.ParseFloat(v, 64)
-			if err != nil {
-				return v
-			}
-
-			return num
-		}
-	case float64:
-		{
-			return v
-		}
-	default:
-		{
-			panic(fmt.Sprintf("Value %v is not string or float64", v))
-		}
-	}
-}
-
 func add(left, right any) (any, error) {
 	switch lv := left.(type) {
 	case float64:
-		if r, ok := right.(float64); ok {
-			return lv + r, nil
+		if rv, ok := right.(float64); ok {
+			return lv + rv, nil
 		}
 	case string:
-		if r, ok := right.(string); ok {
-			return lv + r, nil
+		if rv, ok := right.(string); ok {
+			return lv + rv, nil
 		}
 	}
 

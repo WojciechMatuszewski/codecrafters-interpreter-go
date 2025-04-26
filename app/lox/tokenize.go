@@ -24,7 +24,6 @@ type TokenizeResult struct {
 
 func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 	reader := bufio.NewReader(r)
-
 	line := 1
 
 	var tokenErrors []UnexpectedTokenError

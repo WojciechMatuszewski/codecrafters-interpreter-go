@@ -138,7 +138,7 @@ func (p *parser) primary() (Expression, error) {
 	}
 
 	if p.match(NIL) {
-		return &literalExpression{Value: "nil"}, nil
+		return &literalExpression{Value: nil}, nil
 	}
 
 	if p.match(NUMBER, STRING) {

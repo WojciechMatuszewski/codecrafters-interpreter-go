@@ -29,6 +29,16 @@ func TestEvaluate(t *testing.T) {
 			expectedOut: "10.4",
 			expectedErr: "",
 		},
+		{
+			input:       "(\"hello world\")",
+			expectedOut: "hello world",
+			expectedErr: "",
+		},
+		{
+			input:       "((true))",
+			expectedOut: "true",
+			expectedErr: "",
+		},
 	}
 
 	for _, tt := range tests {

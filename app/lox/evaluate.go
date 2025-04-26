@@ -17,9 +17,9 @@ func (l *Lox) Evaluate(r io.Reader) any {
 
 type evaluator struct{}
 
-func (p *evaluator) visitBinaryExpression(expr *binaryExpression) any {
-	left := expr.Left.accept(p)
-	right := expr.Right.accept(p)
+func (e *evaluator) visitBinaryExpression(expr *binaryExpression) any {
+	left := expr.Left.accept(e)
+	right := expr.Right.accept(e)
 
 	switch expr.Operator {
 	case TokenLexemes[MINUS]:
@@ -50,16 +50,16 @@ func (p *evaluator) visitBinaryExpression(expr *binaryExpression) any {
 	}
 }
 
-func (p *evaluator) visitGroupingExpression(expr *groupingExpression) any {
-	return expr.accept(p)
+func (e *evaluator) visitGroupingExpression(expr *groupingExpression) any {
+	return expr.Expression.accept(e)
 }
 
-func (p *evaluator) visitLiteralExpression(expr *literalExpression) any {
+func (e *evaluator) visitLiteralExpression(expr *literalExpression) any {
 	return expr.Value
 }
 
-func (p *evaluator) visitUnaryExpression(expr *unaryExpression) any {
-	value := expr.Right.accept(p)
+func (e *evaluator) visitUnaryExpression(expr *unaryExpression) any {
+	value := expr.Right.accept(e)
 	switch expr.Operator {
 	case TokenLexemes[MINUS]:
 		{

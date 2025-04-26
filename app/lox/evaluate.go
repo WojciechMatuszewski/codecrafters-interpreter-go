@@ -59,6 +59,25 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) any {
 		{
 			return mustFloat64(left) <= mustFloat64(right)
 		}
+	case TokenLexemes[EQUAL_EQUAL]:
+		{
+			result, err := isEqual(left, right)
+			if err != nil {
+				panic(err)
+			}
+			return result
+
+		}
+	case TokenLexemes[BANG_EQUAL]:
+		{
+
+			result, err := isEqual(left, right)
+			if err != nil {
+				panic(err)
+			}
+
+			return !result
+		}
 	default:
 		{
 			return nil
@@ -96,53 +115,15 @@ func (e *evaluator) visitUnaryExpression(expr *unaryExpression) any {
 	}
 }
 
-// func compare(comparator TokenType, left any, right any) bool {
-// 	switch lv := left.(type) {
-// 	case float64:
-// 		{
-// 			if rv, ok := right.(float64); ok {
-// 				return true
-// 			}
-// 			panic("")
-// 		}
-// 	case string:
-// 		{
-// 			if rv, ok := right.(float64); ok {
-// 				return true
-// 			}
-// 			panic("")
-// 		}
-// 	}
-
-// 	panic("")
-// }
-
-// type comparable interface {
-// 	float64 | string
-// }
-
-// func mustComparable(v any) comparable {
-
-// }
-
 func mustFloat64(v any) float64 {
 	switch v := v.(type) {
 	case float64:
 		{
 			return v
 		}
-	// case string:
-	// 	{
-	// 		num, err := strconv.ParseFloat(v, 64)
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
-
-	// 		return num
-	// 	}
 	default:
 		{
-			panic(fmt.Sprintf("Value %v is not string or float64", v))
+			panic(fmt.Sprintf("Value %v is not float64", v))
 		}
 	}
 
@@ -161,6 +142,29 @@ func add(left, right any) (any, error) {
 	}
 
 	return nil, fmt.Errorf("unsupported operand types for +: %T and %T", left, right)
+}
+
+func isEqual(left, right any) (bool, error) {
+	if left == nil && right == nil {
+		return true, nil
+	}
+
+	if left == nil {
+		return false, nil
+	}
+
+	switch lv := left.(type) {
+	case float64:
+		if rv, ok := right.(float64); ok {
+			return lv == rv, nil
+		}
+	case string:
+		if rv, ok := right.(string); ok {
+			return lv == rv, nil
+		}
+	}
+
+	return false, nil
 }
 
 func isTruthy(v any) bool {

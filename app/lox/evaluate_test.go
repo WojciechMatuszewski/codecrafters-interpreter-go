@@ -89,6 +89,66 @@ func TestEvaluate(t *testing.T) {
 			expectedOut: "false",
 			expectedErr: "",
 		},
+		{
+			input:       "\"hello\" == \"hello\"",
+			expectedOut: "true",
+			expectedErr: "",
+		},
+		{
+			input:       "\"hello1\" == \"hello\"",
+			expectedOut: "false",
+			expectedErr: "",
+		},
+		{
+			input:       "\"hello\" != \"hello\"",
+			expectedOut: "false",
+			expectedErr: "",
+		},
+		{
+			input:       "\"hello1\" != \"hello\"",
+			expectedOut: "true",
+			expectedErr: "",
+		},
+		{
+			input:       "42 == 42",
+			expectedOut: "true",
+			expectedErr: "",
+		},
+		{
+			input:       "43 == 42",
+			expectedOut: "false",
+			expectedErr: "",
+		},
+		{
+			input:       "42 != 42",
+			expectedOut: "false",
+			expectedErr: "",
+		},
+		{
+			input:       "43 != 42",
+			expectedOut: "true",
+			expectedErr: "",
+		},
+		{
+			input:       "42 == \"42\"",
+			expectedOut: "false",
+			expectedErr: "",
+		},
+		{
+			input:       "nil == nil",
+			expectedOut: "true",
+			expectedErr: "",
+		},
+		{
+			input:       "nil == 42",
+			expectedOut: "false",
+			expectedErr: "",
+		},
+		{
+			input:       "42 == nil",
+			expectedOut: "false",
+			expectedErr: "",
+		},
 	}
 
 	for _, tt := range tests {

@@ -54,7 +54,16 @@ func evaluate(filePath string) {
 	defer file.Close()
 
 	l := lox.NewLox()
-	fmt.Fprint(os.Stdout, l.Evaluate(file))
+
+	out := l.Evaluate(file)
+	if out == nil {
+		// By default, nil formats as <nil>.
+		// I could not find any formatting verbs to format is as just "nil"
+		fmt.Fprint(os.Stdout, "nil")
+	} else {
+		fmt.Fprint(os.Stdout, l.Evaluate(file))
+	}
+
 }
 
 func parse(filePath string) {

@@ -3,7 +3,6 @@ package lox
 import (
 	"fmt"
 	"io"
-	"strconv"
 )
 
 func (l *Lox) Evaluate(r io.Reader) any {
@@ -43,6 +42,23 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) any {
 		{
 			return mustFloat64(left) / mustFloat64(right)
 		}
+	case TokenLexemes[GREATER]:
+		{
+			return mustFloat64(left) > mustFloat64(right)
+		}
+	case TokenLexemes[GREATER_EQUAL]:
+		{
+
+			return mustFloat64(left) >= mustFloat64(right)
+		}
+	case TokenLexemes[LESS]:
+		{
+			return mustFloat64(left) < mustFloat64(right)
+		}
+	case TokenLexemes[LESS_EQUAL]:
+		{
+			return mustFloat64(left) <= mustFloat64(right)
+		}
 	default:
 		{
 			return nil
@@ -80,21 +96,50 @@ func (e *evaluator) visitUnaryExpression(expr *unaryExpression) any {
 	}
 }
 
+// func compare(comparator TokenType, left any, right any) bool {
+// 	switch lv := left.(type) {
+// 	case float64:
+// 		{
+// 			if rv, ok := right.(float64); ok {
+// 				return true
+// 			}
+// 			panic("")
+// 		}
+// 	case string:
+// 		{
+// 			if rv, ok := right.(float64); ok {
+// 				return true
+// 			}
+// 			panic("")
+// 		}
+// 	}
+
+// 	panic("")
+// }
+
+// type comparable interface {
+// 	float64 | string
+// }
+
+// func mustComparable(v any) comparable {
+
+// }
+
 func mustFloat64(v any) float64 {
 	switch v := v.(type) {
 	case float64:
 		{
 			return v
 		}
-	case string:
-		{
-			num, err := strconv.ParseFloat(v, 64)
-			if err != nil {
-				panic(err)
-			}
+	// case string:
+	// 	{
+	// 		num, err := strconv.ParseFloat(v, 64)
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
 
-			return num
-		}
+	// 		return num
+	// 	}
 	default:
 		{
 			panic(fmt.Sprintf("Value %v is not string or float64", v))

@@ -74,6 +74,21 @@ func TestEvaluate(t *testing.T) {
 			expectedOut: "84",
 			expectedErr: "",
 		},
+		{
+			input:       "57 > -65",
+			expectedOut: "true",
+			expectedErr: "",
+		},
+		{
+			input:       "(54 - 67) >= -(114 / 57 + 11)",
+			expectedOut: "true",
+			expectedErr: "",
+		},
+		{
+			input:       "(54 - 67) < -(114 / 57 + 11)",
+			expectedOut: "false",
+			expectedErr: "",
+		},
 	}
 
 	for _, tt := range tests {

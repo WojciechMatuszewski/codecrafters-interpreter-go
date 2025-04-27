@@ -149,6 +149,11 @@ func TestEvaluate(t *testing.T) {
 			expectedOut: "false",
 			expectedErr: "",
 		},
+		{
+			input:       "-\"foo\"",
+			expectedOut: "",
+			expectedErr: "Operand must be a number.\n[line 1]",
+		},
 	}
 
 	for _, tt := range tests {
@@ -156,9 +161,22 @@ func TestEvaluate(t *testing.T) {
 			r := bytes.NewReader([]byte(tt.input))
 
 			l := lox.NewLox()
-			out := fmt.Sprintf("%v", l.Evaluate(r))
+			result, err := l.Evaluate(r)
 
-			if out != tt.expectedOut {
+			if err != nil && tt.expectedErr == "" {
+				t.Fatalf("did not expect error, but got: %v", err)
+			}
+
+			if err != nil && tt.expectedErr != err.Error() {
+				t.Errorf("\nexpected error:\n%q\ngot:\n%q\n", tt.expectedErr, err.Error())
+			}
+
+			out := fmt.Sprint(result)
+			if result == nil && tt.expectedOut != "" && tt.expectedOut != "<nil>" {
+				t.Fatalf("did not expect output, but got: %v", out)
+			}
+
+			if result != nil && out != tt.expectedOut {
 				t.Errorf("\nexpected output:\n%q\ngot:\n%q\n", tt.expectedOut, out)
 			}
 		})

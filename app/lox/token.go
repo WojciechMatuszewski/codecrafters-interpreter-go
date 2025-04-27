@@ -125,11 +125,12 @@ var Keywords = map[string]TokenType{
 
 type Token struct {
 	Type    TokenType
-	Lexme   *string
+	Lexeme  *string
 	Literal any
+	Line    int
 }
 
-func NewToken(tokenType TokenType) Token {
+func NewToken(tokenType TokenType, line int) Token {
 	lexme, found := TokenLexemes[tokenType]
 	if !found {
 		panic(fmt.Sprintf("could not find lexme for tokenType: %v", tokenType))
@@ -137,30 +138,33 @@ func NewToken(tokenType TokenType) Token {
 
 	return Token{
 		Type:    tokenType,
-		Lexme:   &lexme,
+		Lexeme:  &lexme,
 		Literal: nil,
+		Line:    line,
 	}
 }
 
-func NewStringToken(value string) Token {
+func NewStringToken(value string, line int) Token {
 	lexme := fmt.Sprintf("\"%v\"", value)
 
 	return Token{
 		Type:    STRING,
-		Lexme:   &lexme,
+		Lexeme:  &lexme,
 		Literal: value,
+		Line:    line,
 	}
 }
 
-func NewIdentifierToken(value string) Token {
+func NewIdentifierToken(value string, line int) Token {
 	return Token{
 		Type:    IDENTIFIER,
-		Lexme:   &value,
+		Lexeme:  &value,
 		Literal: nil,
+		Line:    line,
 	}
 }
 
-func NewNumberToken(value string) Token {
+func NewNumberToken(value string, line int) Token {
 	literal, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		panic(err)
@@ -168,15 +172,16 @@ func NewNumberToken(value string) Token {
 
 	return Token{
 		Type:    NUMBER,
-		Lexme:   &value,
+		Lexeme:  &value,
 		Literal: literal,
+		Line:    line,
 	}
 }
 
 func (t Token) String() string {
 	lexme := "null"
-	if t.Lexme != nil {
-		lexme = *t.Lexme
+	if t.Lexeme != nil {
+		lexme = *t.Lexeme
 	}
 
 	literal := "null"

@@ -55,7 +55,8 @@ func (p *parser) equality() (Expression, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
+
+		expr = &binaryExpression{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -73,7 +74,7 @@ func (p *parser) comparison() (Expression, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
+		expr = &binaryExpression{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -91,7 +92,7 @@ func (p *parser) term() (Expression, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
+		expr = &binaryExpression{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -109,7 +110,7 @@ func (p *parser) factor() (Expression, error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &binaryExpression{Left: expr, Operator: *operator.Lexme, Right: right}
+		expr = &binaryExpression{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr, nil
@@ -122,7 +123,7 @@ func (p *parser) unary() (Expression, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &unaryExpression{Operator: *operator.Lexme, Right: right}, nil
+		return &unaryExpression{Operator: operator, Right: right}, nil
 	}
 
 	return p.primary()

@@ -5,7 +5,16 @@ import (
 	"io"
 )
 
-func (l *Lox) Evaluate(r io.Reader) any {
+type RuntimeError struct {
+	line    int
+	message string
+}
+
+func (re RuntimeError) Error() string {
+	return fmt.Sprintf("%s\n[line %v]", re.message, re.line)
+}
+
+func (l *Lox) Evaluate(r io.Reader) (any, error) {
 	expr, err := l.Parse(r)
 	if err != nil {
 		panic(err)
@@ -16,48 +25,119 @@ func (l *Lox) Evaluate(r io.Reader) any {
 
 type evaluator struct{}
 
-func (e *evaluator) visitBinaryExpression(expr *binaryExpression) any {
-	left := expr.Left.accept(e)
-	right := expr.Right.accept(e)
+func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
+	left, err := expr.Left.accept(e)
+	if err != nil {
+		return nil, err
+	}
 
-	switch expr.Operator {
+	right, err := expr.Right.accept(e)
+	if err != nil {
+		return nil, err
+	}
+
+	switch *expr.Operator.Lexeme {
 	case TokenLexemes[MINUS]:
 		{
-			return mustFloat64(left) - mustFloat64(right)
+			lv, err := toF64(left)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+			rv, err := toF64(right)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+
+			return lv - rv, nil
 		}
 	case TokenLexemes[PLUS]:
 		{
 			sum, err := add(left, right)
 			if err != nil {
-				panic(err)
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers or two strings."}
 			}
 
-			return sum
+			return sum, nil
 		}
 	case TokenLexemes[STAR]:
 		{
-			return mustFloat64(left) * mustFloat64(right)
+			lv, err := toF64(left)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+			rv, err := toF64(right)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+
+			return lv * rv, nil
 		}
 	case TokenLexemes[SLASH]:
 		{
-			return mustFloat64(left) / mustFloat64(right)
+			lv, err := toF64(left)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+			rv, err := toF64(right)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+
+			return lv / rv, nil
 		}
 	case TokenLexemes[GREATER]:
 		{
-			return mustFloat64(left) > mustFloat64(right)
+			lv, err := toF64(left)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+			rv, err := toF64(right)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+
+			return lv > rv, nil
+
 		}
 	case TokenLexemes[GREATER_EQUAL]:
 		{
+			lv, err := toF64(left)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+			rv, err := toF64(right)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
 
-			return mustFloat64(left) >= mustFloat64(right)
+			return lv >= rv, nil
 		}
 	case TokenLexemes[LESS]:
 		{
-			return mustFloat64(left) < mustFloat64(right)
+			lv, err := toF64(left)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+			rv, err := toF64(right)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+
+			return rv < lv, nil
+
 		}
 	case TokenLexemes[LESS_EQUAL]:
 		{
-			return mustFloat64(left) <= mustFloat64(right)
+			lv, err := toF64(left)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+			rv, err := toF64(right)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operands must be two numbers."}
+			}
+
+			return lv <= rv, nil
 		}
 	case TokenLexemes[EQUAL_EQUAL]:
 		{
@@ -65,7 +145,8 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) any {
 			if err != nil {
 				panic(err)
 			}
-			return result
+
+			return result, nil
 
 		}
 	case TokenLexemes[BANG_EQUAL]:
@@ -76,54 +157,63 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) any {
 				panic(err)
 			}
 
-			return !result
+			return !result, nil
 		}
 	default:
 		{
-			return nil
+			panic(fmt.Errorf("unknown operator for binary operation"))
 		}
 	}
 }
 
-func (e *evaluator) visitGroupingExpression(expr *groupingExpression) any {
+func (e *evaluator) visitGroupingExpression(expr *groupingExpression) (any, error) {
 	return expr.Expression.accept(e)
 }
 
-func (e *evaluator) visitLiteralExpression(expr *literalExpression) any {
-	return expr.Value
+func (e *evaluator) visitLiteralExpression(expr *literalExpression) (any, error) {
+	return expr.Value, nil
 }
 
-func (e *evaluator) visitUnaryExpression(expr *unaryExpression) any {
-	value := expr.Right.accept(e)
-	switch expr.Operator {
+func (e *evaluator) visitUnaryExpression(expr *unaryExpression) (any, error) {
+	value, err := expr.Right.accept(e)
+	if err != nil {
+		return nil, err
+	}
+
+	switch *expr.Operator.Lexeme {
 	case TokenLexemes[MINUS]:
 		{
-			return -mustFloat64(value)
+			v, err := toF64(value)
+			if err != nil {
+				return nil, RuntimeError{line: expr.Operator.Line, message: "Operand must be a number."}
+			}
+
+			return -v, nil
 		}
 	case TokenLexemes[PLUS]:
 		{
-			return value
+			return value, nil
 		}
 	case TokenLexemes[BANG]:
 		{
-			return !isTruthy(value)
+			return !isTruthy(value), nil
 		}
 	default:
 		{
-			return nil
+			panic(fmt.Errorf("unknown operator"))
 		}
 	}
 }
 
-func mustFloat64(v any) float64 {
+func toF64(v any) (float64, error) {
 	switch v := v.(type) {
 	case float64:
 		{
-			return v
+			return v, nil
 		}
 	default:
 		{
-			panic(fmt.Sprintf("Value %v is not float64", v))
+			return 0, fmt.Errorf("value %v is not float64", v)
 		}
 	}
 

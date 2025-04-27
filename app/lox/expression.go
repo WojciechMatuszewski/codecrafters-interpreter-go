@@ -74,7 +74,7 @@ func (p *printer) visitBinaryExpression(expr *binaryExpression) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return fmt.Sprintf("(%v %s %v)", expr.Operator, left, right), nil
+	return fmt.Sprintf("(%v %s %v)", *expr.Operator.Lexeme, left, right), nil
 }
 
 func (p *printer) visitGroupingExpression(expr *groupingExpression) (any, error) {
@@ -105,7 +105,8 @@ func (p *printer) visitUnaryExpression(expr *unaryExpression) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return fmt.Sprintf("(%s %v)", expr.Operator, right), nil
+
+	return fmt.Sprintf("(%s %v)", *expr.Operator.Lexeme, right), nil
 }
 
 func parenthesize(name string, visitor expressionVisitor, exprs ...Expression) (string, error) {

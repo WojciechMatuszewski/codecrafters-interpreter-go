@@ -53,6 +53,16 @@ func TestParse(t *testing.T) {
 			expectedOut: "",
 			expectedErr: "[line 1] Error at ')': Expect expression.",
 		},
+		{
+			input:       "\"baz\"!=\"world\"",
+			expectedOut: "(!= baz world)",
+			expectedErr: "",
+		},
+		{
+			input:       "!true",
+			expectedOut: "(! true)",
+			expectedErr: "",
+		},
 	}
 
 	for _, tt := range tests {

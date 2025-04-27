@@ -57,7 +57,7 @@ func evaluate(filePath string) {
 
 	out, err := l.Evaluate(file)
 	if err != nil {
-		if errors.As(err, &lox.SyntaxError{}) {
+		if errors.As(err, &lox.RuntimeError{}) {
 			fmt.Fprint(os.Stderr, err.Error())
 			os.Exit(70)
 		}

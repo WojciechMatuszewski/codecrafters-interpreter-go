@@ -3,6 +3,7 @@ package lox
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 type RuntimeError struct {
@@ -37,7 +38,7 @@ func (l *Lox) Run(r io.Reader) (any, error) {
 		}
 
 		if out != nil {
-			result += fmt.Sprintf("%s", out)
+			result += strings.ToValidUTF8(fmt.Sprintf("%v", out), "")
 		}
 	}
 

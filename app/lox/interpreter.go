@@ -37,7 +37,7 @@ func (l *Lox) Run(r io.Reader) (any, error) {
 		}
 
 		if out != nil {
-			result += fmt.Sprintf("%v", out)
+			result += fmt.Sprintf("%s", out)
 		}
 	}
 

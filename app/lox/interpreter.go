@@ -37,7 +37,7 @@ func (l *Lox) Run(r io.Reader) (any, error) {
 		}
 
 		if str, ok := out.(string); ok {
-			result += fmt.Sprintf("%s", str)
+			result += str
 		} else {
 			result += fmt.Sprintf("%v", out)
 		}
@@ -58,6 +58,9 @@ func (e *evaluator) visitPrintStatement(statement *printStatement) (any, error) 
 		return nil, err
 	}
 
+	if str, ok := out.(string); ok {
+		return str + "\n", nil
+	}
 	return fmt.Sprintf("%v\n", out), nil
 }
 

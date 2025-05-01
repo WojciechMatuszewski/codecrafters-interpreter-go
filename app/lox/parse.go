@@ -51,22 +51,22 @@ func (p *parser) parse() ([]Statement, error) {
 }
 
 func (p *parser) statement() (Statement, error) {
-	if p.match(PRINT) {
-		expr, err := p.expression()
-		if err != nil {
-			panic(err)
-		}
-
-		if p.match(SEMICOLON) {
-			return &printStatement{
-				expr: expr,
-			}, nil
-		}
-
-		return nil, SyntaxError{line: 1, message: "Expect ';' after value."}
+	if !p.match(PRINT) {
+		return p.expressionStatement()
 	}
 
-	return p.expressionStatement()
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(SEMICOLON) {
+		return &printStatement{
+			expr: expr,
+		}, nil
+	}
+
+	return nil, SyntaxError{line: 1, message: "Expect ';' after value."}
 }
 
 func (p *parser) expressionStatement() (Statement, error) {

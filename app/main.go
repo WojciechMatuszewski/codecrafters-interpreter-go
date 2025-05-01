@@ -55,12 +55,16 @@ func evaluate(filePath string) {
 	defer file.Close()
 
 	l := lox.NewLox()
-
 	out, err := l.Evaluate(file)
 	if err != nil {
 		if errors.As(err, &lox.RuntimeError{}) {
 			fmt.Fprint(os.Stderr, err.Error())
 			os.Exit(70)
+		}
+
+		if errors.As(err, &lox.SyntaxError{}) {
+			fmt.Fprint(os.Stderr, err.Error())
+			os.Exit(65)
 		}
 
 		logger.Fatalf("Failed to evaluate the file: %v", err)

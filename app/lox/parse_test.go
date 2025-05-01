@@ -82,7 +82,10 @@ func TestParse(t *testing.T) {
 			}
 
 			if statements != nil {
-				out := lox.Format(statements)
+				out, err := lox.Format(statements)
+				if err != nil {
+					panic(err)
+				}
 
 				if tt.expectedOut == "" {
 					t.Fatalf("did not expect output, but got: %v", out)

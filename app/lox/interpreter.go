@@ -15,6 +15,15 @@ func (re RuntimeError) Error() string {
 }
 
 func (l *Lox) Evaluate(r io.Reader) (any, error) {
+	expr, err := l.ParseExpression(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return expr.accept(&evaluator{})
+}
+
+func (l *Lox) Run(r io.Reader) (any, error) {
 	statements, err := l.Parse(r)
 	if err != nil {
 		return nil, err

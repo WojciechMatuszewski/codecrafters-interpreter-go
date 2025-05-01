@@ -35,15 +35,52 @@ func main() {
 			filePath := os.Args[2]
 			parse(filePath)
 		}
-	case CMD_EVALUATE, CMD_RUN:
+	case CMD_EVALUATE:
 		{
 			filePath := os.Args[2]
 			evaluate(filePath)
+		}
+	case CMD_RUN:
+		{
+			filePath := os.Args[2]
+			run(filePath)
 		}
 	default:
 		{
 			logger.Fatalf("Unknown command %s\n", os.Args[1])
 		}
+	}
+}
+
+func run(filePath string) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		logger.Fatalf("Failed to read file: %v", err)
+	}
+	defer file.Close()
+
+	l := lox.NewLox()
+	out, err := l.Run(file)
+	if err != nil {
+		if errors.As(err, &lox.RuntimeError{}) {
+			fmt.Fprint(os.Stderr, err.Error())
+			os.Exit(70)
+		}
+
+		if (errors.As(err, &lox.SyntaxError{})) {
+			fmt.Fprint(os.Stderr, err.Error())
+			os.Exit(65)
+		}
+
+		logger.Fatalf("Failed to evaluate the file: %v", err)
+	}
+
+	if out == nil {
+		// By default, nil formats as <nil>.
+		// I could not find any formatting verbs to format is as just "nil"
+		fmt.Fprint(os.Stdout, "nil")
+	} else {
+		fmt.Fprint(os.Stdout, out)
 	}
 }
 
@@ -62,11 +99,6 @@ func evaluate(filePath string) {
 			os.Exit(70)
 		}
 
-		if errors.As(err, &lox.SyntaxError{}) {
-			fmt.Fprint(os.Stderr, err.Error())
-			os.Exit(65)
-		}
-
 		logger.Fatalf("Failed to evaluate the file: %v", err)
 	}
 
@@ -77,7 +109,6 @@ func evaluate(filePath string) {
 	} else {
 		fmt.Fprint(os.Stdout, out)
 	}
-
 }
 
 func parse(filePath string) {
@@ -98,7 +129,12 @@ func parse(filePath string) {
 		logger.Fatalf("Failed to parse the file: %v", err)
 	}
 
-	fmt.Fprint(os.Stdout, lox.Format(statements))
+	out, err := lox.Format(statements)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprint(os.Stdout, out)
 }
 
 func tokenize(filePath string) {

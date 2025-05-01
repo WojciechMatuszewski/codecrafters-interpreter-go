@@ -20,9 +20,17 @@ func (l *Lox) Parse(r io.Reader) ([]Statement, error) {
 		return nil, err
 	}
 	parser := newParser(result.Tokens)
-	statements, err := parser.parse()
+	return parser.parse()
+}
 
-	return statements, err
+func (l *Lox) ParseExpression(r io.Reader) (Expression, error) {
+	result, err := l.Tokenize(r)
+	if err != nil {
+		return nil, err
+	}
+
+	parser := newParser(result.Tokens)
+	return parser.parseExpression()
 }
 
 type parser struct {
@@ -32,6 +40,17 @@ type parser struct {
 
 func newParser(tokens []token) *parser {
 	return &parser{tokens: tokens, current: 0}
+}
+
+func (p *parser) parseExpression() (Expression, error) {
+	p.current = 0
+
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	return expr, nil
 }
 
 func (p *parser) parse() ([]Statement, error) {

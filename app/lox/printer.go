@@ -4,20 +4,29 @@ import "fmt"
 
 type printer struct{}
 
-func Format(statements []Statement) string {
+func Format(statements []Statement) (string, error) {
 	result := ""
 	printer := &printer{}
 
 	for _, statement := range statements {
 		out, err := statement.accept(printer)
 		if err != nil {
-			panic(err)
+			return "", fmt.Errorf("failed to format statements: %w", err)
 		}
 
 		result += fmt.Sprintf("%v", out)
 	}
 
-	return result
+	return result, nil
+}
+
+func FormatExpression(expr Expression) (string, error) {
+	out, err := expr.accept(&printer{})
+	if err != nil {
+		return "", fmt.Errorf("failed to format expression: %w", err)
+	}
+
+	return fmt.Sprintf("%v", out), nil
 }
 
 func (p *printer) visitExprStatement(statement *exprStatement) (any, error) {

@@ -183,3 +183,49 @@ func TestEvaluate(t *testing.T) {
 	}
 
 }
+
+func TestRun(t *testing.T) {
+	tests := []struct {
+		input       string
+		expectedOut string
+		expectedErr string
+	}{
+		{
+			input:       "print false != false;",
+			expectedOut: "false\n",
+			expectedErr: "",
+		},
+		{
+			input:       "print \"36\n10\n78\n\";print\"foo\";",
+			expectedOut: "36\n10\n78\n\nfoo\n",
+			expectedErr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			r := bytes.NewReader([]byte(tt.input))
+
+			l := lox.NewLox()
+			result, err := l.Run(r)
+
+			if err != nil && tt.expectedErr == "" {
+				t.Fatalf("did not expect error, but got: %v", err)
+			}
+
+			if err != nil && tt.expectedErr != err.Error() {
+				t.Errorf("\nexpected error:\n%q\ngot:\n%q\n", tt.expectedErr, err.Error())
+			}
+
+			out := fmt.Sprint(result)
+			if result == nil && tt.expectedOut != "" && tt.expectedOut != "<nil>" {
+				t.Fatalf("did not expect output, but got: %v", out)
+			}
+
+			if result != nil && out != tt.expectedOut {
+				t.Errorf("\nexpected output:\n%q\ngot:\n%q\n", tt.expectedOut, out)
+			}
+		})
+	}
+
+}

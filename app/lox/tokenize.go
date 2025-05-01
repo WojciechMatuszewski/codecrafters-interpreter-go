@@ -169,6 +169,8 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 					st := string(bt)
 					if st == "\n" {
 						line += 1
+						contents += st
+
 						continue
 					}
 

@@ -290,6 +290,10 @@ func isEqual(left, right any) (bool, error) {
 		if rv, ok := right.(string); ok {
 			return lv == rv, nil
 		}
+	case bool:
+		if rv, ok := right.(bool); ok {
+			return lv == rv, nil
+		}
 	}
 
 	return false, nil

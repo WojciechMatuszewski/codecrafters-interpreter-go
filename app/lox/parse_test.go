@@ -7,7 +7,7 @@ import (
 	"github.com/codecrafters-io/interpreter-starter-go/app/lox"
 )
 
-func TestParse(t *testing.T) {
+func TestParseExpression(t *testing.T) {
 	tests := []struct {
 		input       string
 		expectedOut string
@@ -70,7 +70,7 @@ func TestParse(t *testing.T) {
 			r := bytes.NewReader([]byte(tt.input))
 
 			l := lox.NewLox()
-			statements, err := l.Parse(r)
+			expr, err := l.ParseExpression(r)
 			if err != nil {
 				if tt.expectedErr == "" {
 					t.Fatalf("did not expect error, but got: %v", err)
@@ -81,8 +81,8 @@ func TestParse(t *testing.T) {
 				}
 			}
 
-			if statements != nil {
-				out, err := lox.Format(statements)
+			if expr != nil {
+				out, err := lox.FormatExpression(expr)
 				if err != nil {
 					panic(err)
 				}
@@ -100,7 +100,7 @@ func TestParse(t *testing.T) {
 				t.Errorf("expected error:\n%q\nreceived: none\n", tt.expectedErr)
 			}
 
-			if statements == nil && tt.expectedOut != "" {
+			if expr == nil && tt.expectedOut != "" {
 				t.Errorf("expected output:\n%q\nreceived: none\n", tt.expectedOut)
 			}
 

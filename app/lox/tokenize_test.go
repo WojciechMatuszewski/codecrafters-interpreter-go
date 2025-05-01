@@ -46,7 +46,7 @@ func TestTokenize(t *testing.T) {
 		},
 		{
 			input:       "\"bar\n\"foo\n\"\n\"bar",
-			expectedOut: "STRING \"bar\" bar\nIDENTIFIER foo null\nSTRING \"\" \nIDENTIFIER bar null\nEOF  null\n",
+			expectedOut: "STRING \"bar\n\" bar\n\nIDENTIFIER foo null\nSTRING \"\n\" \n\nIDENTIFIER bar null\nEOF  null\n",
 			expectedErr: "",
 		},
 		{

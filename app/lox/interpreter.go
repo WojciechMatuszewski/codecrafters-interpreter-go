@@ -23,6 +23,8 @@ func (l *Lox) Evaluate(r io.Reader) (any, error) {
 	return expr.accept(&evaluator{})
 }
 
+// TODO: We do not want to return anything here.
+// We should write to STDIO, but how to make it robust?
 func (l *Lox) Run(r io.Reader) (any, error) {
 	statements, err := l.Parse(r)
 	if err != nil {
@@ -36,11 +38,10 @@ func (l *Lox) Run(r io.Reader) (any, error) {
 			return nil, err
 		}
 
-		if str, ok := out.(string); ok {
-			result += str
-		} else {
-			result += fmt.Sprintf("%v", out)
+		if out != nil {
+			result += fmt.Sprintf("%v\n", out)
 		}
+
 	}
 
 	if result == "" {
@@ -58,14 +59,16 @@ func (e *evaluator) visitPrintStatement(statement *printStatement) (any, error) 
 		return nil, err
 	}
 
-	if str, ok := out.(string); ok {
-		return str + "\n", nil
-	}
-	return fmt.Sprintf("%v\n", out), nil
+	return fmt.Sprintf("%v", out), nil
 }
 
 func (e *evaluator) visitExprStatement(statement *exprStatement) (any, error) {
-	return statement.expr.accept(e)
+	_, err := statement.expr.accept(e)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {

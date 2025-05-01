@@ -154,6 +154,11 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 			}
 		case "\"":
 			{
+				// We have to operate on bytes here.
+				// Some characters might span multiple bytes.
+				// Take "ॐ" for example.
+				// Converting a single byte to a string with st := string(bt) would split this character into multiple pieces.
+				// Appending these multiple pieces to the "contents" would produce issues when formatting that character.
 				contents := make([]byte, 0)
 				for {
 					bt, err := reader.ReadByte()

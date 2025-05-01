@@ -15,6 +15,7 @@ const (
 	CMD_TOKENIZE = "tokenize"
 	CMD_PARSE    = "parse"
 	CMD_EVALUATE = "evaluate"
+	CMD_RUN      = "run"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 			filePath := os.Args[2]
 			parse(filePath)
 		}
-	case CMD_EVALUATE:
+	case CMD_EVALUATE, CMD_RUN:
 		{
 			filePath := os.Args[2]
 			evaluate(filePath)
@@ -83,7 +84,7 @@ func parse(filePath string) {
 	defer file.Close()
 
 	l := lox.NewLox()
-	expr, err := l.Parse(file)
+	statements, err := l.Parse(file)
 	if err != nil {
 		if errors.As(err, &lox.SyntaxError{}) {
 			fmt.Fprint(os.Stderr, err.Error())
@@ -93,7 +94,7 @@ func parse(filePath string) {
 		logger.Fatalf("Failed to parse the file: %v", err)
 	}
 
-	fmt.Fprint(os.Stdout, lox.FormatExpression(expr))
+	fmt.Fprint(os.Stdout, lox.Format(statements))
 }
 
 func tokenize(filePath string) {

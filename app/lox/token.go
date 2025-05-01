@@ -5,59 +5,59 @@ import (
 	"strconv"
 )
 
-type TokenType string
+type tokenType string
 
 const (
 	// Single-character tokens
-	LEFT_PAREN  TokenType = "LEFT_PAREN"
-	RIGHT_PAREN TokenType = "RIGHT_PAREN"
-	LEFT_BRACE  TokenType = "LEFT_BRACE"
-	RIGHT_BRACE TokenType = "RIGHT_BRACE"
-	COMMA       TokenType = "COMMA"
-	DOT         TokenType = "DOT"
-	MINUS       TokenType = "MINUS"
-	PLUS        TokenType = "PLUS"
-	SEMICOLON   TokenType = "SEMICOLON"
-	SLASH       TokenType = "SLASH"
-	STAR        TokenType = "STAR"
+	LEFT_PAREN  tokenType = "LEFT_PAREN"
+	RIGHT_PAREN tokenType = "RIGHT_PAREN"
+	LEFT_BRACE  tokenType = "LEFT_BRACE"
+	RIGHT_BRACE tokenType = "RIGHT_BRACE"
+	COMMA       tokenType = "COMMA"
+	DOT         tokenType = "DOT"
+	MINUS       tokenType = "MINUS"
+	PLUS        tokenType = "PLUS"
+	SEMICOLON   tokenType = "SEMICOLON"
+	SLASH       tokenType = "SLASH"
+	STAR        tokenType = "STAR"
 
 	// One or two character tokens
-	BANG          TokenType = "BANG"
-	BANG_EQUAL    TokenType = "BANG_EQUAL"
-	EQUAL         TokenType = "EQUAL"
-	EQUAL_EQUAL   TokenType = "EQUAL_EQUAL"
-	GREATER       TokenType = "GREATER"
-	GREATER_EQUAL TokenType = "GREATER_EQUAL"
-	LESS          TokenType = "LESS"
-	LESS_EQUAL    TokenType = "LESS_EQUAL"
+	BANG          tokenType = "BANG"
+	BANG_EQUAL    tokenType = "BANG_EQUAL"
+	EQUAL         tokenType = "EQUAL"
+	EQUAL_EQUAL   tokenType = "EQUAL_EQUAL"
+	GREATER       tokenType = "GREATER"
+	GREATER_EQUAL tokenType = "GREATER_EQUAL"
+	LESS          tokenType = "LESS"
+	LESS_EQUAL    tokenType = "LESS_EQUAL"
 
 	// Literals
-	IDENTIFIER TokenType = "IDENTIFIER"
-	STRING     TokenType = "STRING"
-	NUMBER     TokenType = "NUMBER"
+	IDENTIFIER tokenType = "IDENTIFIER"
+	STRING     tokenType = "STRING"
+	NUMBER     tokenType = "NUMBER"
 
 	// Keywords
-	AND    TokenType = "AND"
-	CLASS  TokenType = "CLASS"
-	ELSE   TokenType = "ELSE"
-	FALSE  TokenType = "FALSE"
-	FUN    TokenType = "FUN"
-	FOR    TokenType = "FOR"
-	IF     TokenType = "IF"
-	NIL    TokenType = "NIL"
-	OR     TokenType = "OR"
-	PRINT  TokenType = "PRINT"
-	RETURN TokenType = "RETURN"
-	SUPER  TokenType = "SUPER"
-	THIS   TokenType = "THIS"
-	TRUE   TokenType = "TRUE"
-	VAR    TokenType = "VAR"
-	WHILE  TokenType = "WHILE"
+	AND    tokenType = "AND"
+	CLASS  tokenType = "CLASS"
+	ELSE   tokenType = "ELSE"
+	FALSE  tokenType = "FALSE"
+	FUN    tokenType = "FUN"
+	FOR    tokenType = "FOR"
+	IF     tokenType = "IF"
+	NIL    tokenType = "NIL"
+	OR     tokenType = "OR"
+	PRINT  tokenType = "PRINT"
+	RETURN tokenType = "RETURN"
+	SUPER  tokenType = "SUPER"
+	THIS   tokenType = "THIS"
+	TRUE   tokenType = "TRUE"
+	VAR    tokenType = "VAR"
+	WHILE  tokenType = "WHILE"
 
-	EOF TokenType = "EOF"
+	EOF tokenType = "EOF"
 )
 
-var TokenLexemes = map[TokenType]string{
+var tokenLexemes = map[tokenType]string{
 	// Single-character tokens
 	LEFT_PAREN:  "(",
 	RIGHT_PAREN: ")",
@@ -103,8 +103,8 @@ var TokenLexemes = map[TokenType]string{
 	EOF: "",
 }
 
-// Map of Keywords where key is the keyword string and value is the TokenType
-var Keywords = map[string]TokenType{
+// Map of keywords where key is the keyword string and value is the TokenType
+var keywords = map[string]tokenType{
 	"and":    AND,
 	"class":  CLASS,
 	"else":   ELSE,
@@ -123,20 +123,20 @@ var Keywords = map[string]TokenType{
 	"while":  WHILE,
 }
 
-type Token struct {
-	Type    TokenType
+type token struct {
+	Type    tokenType
 	Lexeme  *string
 	Literal any
 	Line    int
 }
 
-func NewToken(tokenType TokenType, line int) Token {
-	lexme, found := TokenLexemes[tokenType]
+func newToken(tokenType tokenType, line int) token {
+	lexme, found := tokenLexemes[tokenType]
 	if !found {
 		panic(fmt.Sprintf("could not find lexme for tokenType: %v", tokenType))
 	}
 
-	return Token{
+	return token{
 		Type:    tokenType,
 		Lexeme:  &lexme,
 		Literal: nil,
@@ -144,10 +144,10 @@ func NewToken(tokenType TokenType, line int) Token {
 	}
 }
 
-func NewStringToken(value string, line int) Token {
+func newStringToken(value string, line int) token {
 	lexme := fmt.Sprintf("\"%v\"", value)
 
-	return Token{
+	return token{
 		Type:    STRING,
 		Lexeme:  &lexme,
 		Literal: value,
@@ -155,8 +155,8 @@ func NewStringToken(value string, line int) Token {
 	}
 }
 
-func NewIdentifierToken(value string, line int) Token {
-	return Token{
+func newIdentifierToken(value string, line int) token {
+	return token{
 		Type:    IDENTIFIER,
 		Lexeme:  &value,
 		Literal: nil,
@@ -164,13 +164,13 @@ func NewIdentifierToken(value string, line int) Token {
 	}
 }
 
-func NewNumberToken(value string, line int) Token {
+func newNumberToken(value string, line int) token {
 	literal, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		panic(err)
 	}
 
-	return Token{
+	return token{
 		Type:    NUMBER,
 		Lexeme:  &value,
 		Literal: literal,
@@ -178,7 +178,7 @@ func NewNumberToken(value string, line int) Token {
 	}
 }
 
-func (t Token) String() string {
+func (t token) String() string {
 	lexme := "null"
 	if t.Lexeme != nil {
 		lexme = *t.Lexeme

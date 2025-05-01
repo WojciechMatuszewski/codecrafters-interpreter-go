@@ -18,7 +18,7 @@ func (e UnexpectedTokenError) Error() string {
 }
 
 type TokenizeResult struct {
-	Tokens []Token
+	Tokens []token
 	Errors []UnexpectedTokenError
 }
 
@@ -27,13 +27,13 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 	line := 1
 
 	var tokenErrors []UnexpectedTokenError
-	var tokens []Token
+	var tokens []token
 
 	for {
 		b, err := reader.ReadByte()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				tokens = append(tokens, NewToken(EOF, line))
+				tokens = append(tokens, newToken(EOF, line))
 				break
 			}
 
@@ -42,101 +42,101 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 
 		sb := string(b)
 		switch sb {
-		case TokenLexemes[LEFT_BRACE]:
+		case tokenLexemes[LEFT_BRACE]:
 			{
-				tokens = append(tokens, NewToken(LEFT_BRACE, line))
+				tokens = append(tokens, newToken(LEFT_BRACE, line))
 			}
-		case TokenLexemes[RIGHT_BRACE]:
+		case tokenLexemes[RIGHT_BRACE]:
 			{
-				tokens = append(tokens, NewToken(RIGHT_BRACE, line))
+				tokens = append(tokens, newToken(RIGHT_BRACE, line))
 			}
-		case TokenLexemes[LEFT_PAREN]:
+		case tokenLexemes[LEFT_PAREN]:
 			{
-				tokens = append(tokens, NewToken(LEFT_PAREN, line))
+				tokens = append(tokens, newToken(LEFT_PAREN, line))
 			}
-		case TokenLexemes[RIGHT_PAREN]:
+		case tokenLexemes[RIGHT_PAREN]:
 			{
-				tokens = append(tokens, NewToken(RIGHT_PAREN, line))
+				tokens = append(tokens, newToken(RIGHT_PAREN, line))
 			}
-		case TokenLexemes[COMMA]:
+		case tokenLexemes[COMMA]:
 			{
-				tokens = append(tokens, NewToken(COMMA, line))
+				tokens = append(tokens, newToken(COMMA, line))
 			}
-		case TokenLexemes[DOT]:
+		case tokenLexemes[DOT]:
 			{
-				tokens = append(tokens, NewToken(DOT, line))
+				tokens = append(tokens, newToken(DOT, line))
 			}
-		case TokenLexemes[MINUS]:
+		case tokenLexemes[MINUS]:
 			{
-				tokens = append(tokens, NewToken(MINUS, line))
+				tokens = append(tokens, newToken(MINUS, line))
 			}
-		case TokenLexemes[PLUS]:
+		case tokenLexemes[PLUS]:
 			{
-				tokens = append(tokens, NewToken(PLUS, line))
+				tokens = append(tokens, newToken(PLUS, line))
 			}
-		case TokenLexemes[SEMICOLON]:
+		case tokenLexemes[SEMICOLON]:
 			{
-				tokens = append(tokens, NewToken(SEMICOLON, line))
+				tokens = append(tokens, newToken(SEMICOLON, line))
 			}
-		case TokenLexemes[STAR]:
+		case tokenLexemes[STAR]:
 			{
-				tokens = append(tokens, NewToken(STAR, line))
+				tokens = append(tokens, newToken(STAR, line))
 			}
-		case TokenLexemes[BANG]:
+		case tokenLexemes[BANG]:
 			{
-				matches, err := matchNextToken(reader, NewToken(EQUAL, line))
+				matches, err := matchNextToken(reader, newToken(EQUAL, line))
 				if err != nil {
 					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					tokens = append(tokens, NewToken(BANG_EQUAL, line))
+					tokens = append(tokens, newToken(BANG_EQUAL, line))
 					reader.ReadByte()
 				} else {
-					tokens = append(tokens, NewToken(BANG, line))
+					tokens = append(tokens, newToken(BANG, line))
 				}
 			}
-		case TokenLexemes[EQUAL]:
+		case tokenLexemes[EQUAL]:
 			{
-				matches, err := matchNextToken(reader, NewToken(EQUAL, line))
+				matches, err := matchNextToken(reader, newToken(EQUAL, line))
 				if err != nil {
 					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					tokens = append(tokens, NewToken(EQUAL_EQUAL, line))
+					tokens = append(tokens, newToken(EQUAL_EQUAL, line))
 					reader.ReadByte()
 				} else {
-					tokens = append(tokens, NewToken(EQUAL, line))
+					tokens = append(tokens, newToken(EQUAL, line))
 				}
 			}
-		case TokenLexemes[LESS]:
+		case tokenLexemes[LESS]:
 			{
-				matches, err := matchNextToken(reader, NewToken(EQUAL, line))
+				matches, err := matchNextToken(reader, newToken(EQUAL, line))
 				if err != nil {
 					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					tokens = append(tokens, NewToken(LESS_EQUAL, line))
+					tokens = append(tokens, newToken(LESS_EQUAL, line))
 					reader.ReadByte()
 				} else {
-					tokens = append(tokens, NewToken(LESS, line))
+					tokens = append(tokens, newToken(LESS, line))
 				}
 			}
-		case TokenLexemes[GREATER]:
+		case tokenLexemes[GREATER]:
 			{
-				matches, err := matchNextToken(reader, NewToken(EQUAL, line))
+				matches, err := matchNextToken(reader, newToken(EQUAL, line))
 				if err != nil {
 					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
 				if matches {
-					tokens = append(tokens, NewToken(GREATER_EQUAL, line))
+					tokens = append(tokens, newToken(GREATER_EQUAL, line))
 					reader.ReadByte()
 				} else {
-					tokens = append(tokens, NewToken(GREATER, line))
+					tokens = append(tokens, newToken(GREATER, line))
 				}
 			}
-		case TokenLexemes[SLASH]:
+		case tokenLexemes[SLASH]:
 			{
-				matches, err := matchNextToken(reader, NewToken(SLASH, line))
+				matches, err := matchNextToken(reader, newToken(SLASH, line))
 				if err != nil {
 					return TokenizeResult{}, fmt.Errorf("failed to match next token: %w", err)
 				}
@@ -149,7 +149,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 					}
 					line += 1
 				} else {
-					tokens = append(tokens, NewToken(SLASH, line))
+					tokens = append(tokens, newToken(SLASH, line))
 				}
 			}
 		case "\"":
@@ -173,7 +173,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 					}
 
 					if st == "\"" {
-						tokens = append(tokens, NewStringToken(contents, line))
+						tokens = append(tokens, newStringToken(contents, line))
 						break
 					}
 
@@ -210,7 +210,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 						}
 					}
 
-					tokens = append(tokens, NewNumberToken(number, line))
+					tokens = append(tokens, newNumberToken(number, line))
 				} else if isAlphaNumeric(sb) {
 					content := sb
 
@@ -219,11 +219,11 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 						content += string(b)
 					}
 
-					keyword, found := Keywords[content]
+					keyword, found := keywords[content]
 					if found {
-						tokens = append(tokens, NewToken(keyword, line))
+						tokens = append(tokens, newToken(keyword, line))
 					} else {
-						tokens = append(tokens, NewIdentifierToken(content, line))
+						tokens = append(tokens, newIdentifierToken(content, line))
 					}
 
 				} else {
@@ -240,7 +240,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 
 }
 
-func matchNextToken(r *bufio.Reader, matchToken Token) (bool, error) {
+func matchNextToken(r *bufio.Reader, matchToken token) (bool, error) {
 	nextB, err := r.Peek(1)
 	if err != nil {
 		if errors.Is(err, io.EOF) {

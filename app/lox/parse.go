@@ -14,29 +14,72 @@ func (se SyntaxError) Error() string {
 	return fmt.Sprintf("[line %v] %v", se.line, se.message)
 }
 
-func (l *Lox) Parse(r io.Reader) (Expression, error) {
+func (l *Lox) Parse(r io.Reader) ([]Statement, error) {
 	result, err := l.Tokenize(r)
 	if err != nil {
 		return nil, err
 	}
 	parser := newParser(result.Tokens)
-	expr, err := parser.parse()
+	statements, err := parser.parse()
 
-	return expr, err
+	return statements, err
 }
 
 type parser struct {
-	tokens  []Token
+	tokens  []token
 	current int
 }
 
-func newParser(tokens []Token) *parser {
+func newParser(tokens []token) *parser {
 	return &parser{tokens: tokens, current: 0}
 }
 
-func (p *parser) parse() (Expression, error) {
+func (p *parser) parse() ([]Statement, error) {
 	p.current = 0
-	return p.expression()
+	var statements []Statement
+
+	for !p.isAtEnd() {
+		statement, err := p.statement()
+		if err != nil {
+			return nil, err
+		}
+
+		statements = append(statements, statement)
+	}
+
+	return statements, nil
+}
+
+func (p *parser) statement() (Statement, error) {
+	if p.match(PRINT) {
+		expr, err := p.expression()
+		if err != nil {
+			panic(err)
+		}
+
+		if p.match(SEMICOLON) {
+			return &printStatement{
+				expr: expr,
+			}, nil
+		}
+
+		return nil, SyntaxError{line: 1, message: "Expect ';' after value."}
+	}
+
+	return p.expressionStatement()
+}
+
+func (p *parser) expressionStatement() (Statement, error) {
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(SEMICOLON) {
+		return &exprStatement{expr: expr}, nil
+	}
+
+	return nil, SyntaxError{line: 1, message: "Expect ';' after expression."}
 }
 
 func (p *parser) expression() (Expression, error) {
@@ -162,7 +205,7 @@ func (p *parser) primary() (Expression, error) {
 	return nil, SyntaxError{line: 1, message: "Expect expression."}
 }
 
-func (p *parser) match(tokenTypes ...TokenType) bool {
+func (p *parser) match(tokenTypes ...tokenType) bool {
 	for _, tokenType := range tokenTypes {
 		if p.check(tokenType) {
 			p.advance()
@@ -177,7 +220,7 @@ func (p *parser) isAtEnd() bool {
 	return p.peek().Type == EOF
 }
 
-func (p *parser) check(tokenType TokenType) bool {
+func (p *parser) check(tokenType tokenType) bool {
 	if p.isAtEnd() {
 		return false
 	}
@@ -185,15 +228,15 @@ func (p *parser) check(tokenType TokenType) bool {
 	return p.peek().Type == tokenType
 }
 
-func (p *parser) peek() Token {
+func (p *parser) peek() token {
 	return p.tokens[p.current]
 }
 
-func (p *parser) previous() Token {
+func (p *parser) previous() token {
 	return p.tokens[p.current-1]
 }
 
-func (p *parser) advance() Token {
+func (p *parser) advance() token {
 	if !p.isAtEnd() {
 		p.current += 1
 	}

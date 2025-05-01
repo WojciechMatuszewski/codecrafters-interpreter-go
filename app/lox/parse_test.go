@@ -70,7 +70,7 @@ func TestParse(t *testing.T) {
 			r := bytes.NewReader([]byte(tt.input))
 
 			l := lox.NewLox()
-			expr, err := l.Parse(r)
+			statements, err := l.Parse(r)
 			if err != nil {
 				if tt.expectedErr == "" {
 					t.Fatalf("did not expect error, but got: %v", err)
@@ -81,8 +81,8 @@ func TestParse(t *testing.T) {
 				}
 			}
 
-			if expr != nil {
-				out := lox.FormatExpression(expr)
+			if statements != nil {
+				out := lox.Format(statements)
 
 				if tt.expectedOut == "" {
 					t.Fatalf("did not expect output, but got: %v", out)
@@ -97,7 +97,7 @@ func TestParse(t *testing.T) {
 				t.Errorf("expected error:\n%q\nreceived: none\n", tt.expectedErr)
 			}
 
-			if expr == nil && tt.expectedOut != "" {
+			if statements == nil && tt.expectedOut != "" {
 				t.Errorf("expected output:\n%q\nreceived: none\n", tt.expectedOut)
 			}
 

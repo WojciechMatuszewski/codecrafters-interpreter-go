@@ -15,15 +15,44 @@ func (re RuntimeError) Error() string {
 }
 
 func (l *Lox) Evaluate(r io.Reader) (any, error) {
-	expr, err := l.Parse(r)
+	statements, err := l.Parse(r)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return expr.accept(&evaluator{})
+	var result string
+	for _, statement := range statements {
+		out, err := statement.accept(&evaluator{})
+		if err != nil {
+			return nil, err
+		}
+
+		if out != nil {
+			result += fmt.Sprintf("%v", out)
+		}
+	}
+
+	if result == "" {
+		return nil, nil
+	}
+
+	return result, nil
 }
 
 type evaluator struct{}
+
+func (e *evaluator) visitPrintStatement(statement *printStatement) (any, error) {
+	out, err := statement.expr.accept(e)
+	if err != nil {
+		return nil, err
+	}
+
+	return fmt.Sprintf("%v\n", out), err
+}
+
+func (e *evaluator) visitExprStatement(statement *exprStatement) (any, error) {
+	return statement.expr.accept(e)
+}
 
 func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 	left, err := expr.Left.accept(e)
@@ -37,7 +66,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 	}
 
 	switch *expr.Operator.Lexeme {
-	case TokenLexemes[MINUS]:
+	case tokenLexemes[MINUS]:
 		{
 			lv, err := toF64(left)
 			if err != nil {
@@ -50,7 +79,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 
 			return lv - rv, nil
 		}
-	case TokenLexemes[PLUS]:
+	case tokenLexemes[PLUS]:
 		{
 			sum, err := add(left, right)
 			if err != nil {
@@ -59,7 +88,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 
 			return sum, nil
 		}
-	case TokenLexemes[STAR]:
+	case tokenLexemes[STAR]:
 		{
 			lv, err := toF64(left)
 			if err != nil {
@@ -72,7 +101,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 
 			return lv * rv, nil
 		}
-	case TokenLexemes[SLASH]:
+	case tokenLexemes[SLASH]:
 		{
 			lv, err := toF64(left)
 			if err != nil {
@@ -85,7 +114,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 
 			return lv / rv, nil
 		}
-	case TokenLexemes[GREATER]:
+	case tokenLexemes[GREATER]:
 		{
 			lv, err := toF64(left)
 			if err != nil {
@@ -99,7 +128,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 			return lv > rv, nil
 
 		}
-	case TokenLexemes[GREATER_EQUAL]:
+	case tokenLexemes[GREATER_EQUAL]:
 		{
 			lv, err := toF64(left)
 			if err != nil {
@@ -112,7 +141,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 
 			return lv >= rv, nil
 		}
-	case TokenLexemes[LESS]:
+	case tokenLexemes[LESS]:
 		{
 			lv, err := toF64(left)
 			if err != nil {
@@ -126,7 +155,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 			return rv < lv, nil
 
 		}
-	case TokenLexemes[LESS_EQUAL]:
+	case tokenLexemes[LESS_EQUAL]:
 		{
 			lv, err := toF64(left)
 			if err != nil {
@@ -139,7 +168,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 
 			return lv <= rv, nil
 		}
-	case TokenLexemes[EQUAL_EQUAL]:
+	case tokenLexemes[EQUAL_EQUAL]:
 		{
 			result, err := isEqual(left, right)
 			if err != nil {
@@ -149,7 +178,7 @@ func (e *evaluator) visitBinaryExpression(expr *binaryExpression) (any, error) {
 			return result, nil
 
 		}
-	case TokenLexemes[BANG_EQUAL]:
+	case tokenLexemes[BANG_EQUAL]:
 		{
 
 			result, err := isEqual(left, right)
@@ -181,7 +210,7 @@ func (e *evaluator) visitUnaryExpression(expr *unaryExpression) (any, error) {
 	}
 
 	switch *expr.Operator.Lexeme {
-	case TokenLexemes[MINUS]:
+	case tokenLexemes[MINUS]:
 		{
 			v, err := toF64(value)
 			if err != nil {
@@ -190,11 +219,11 @@ func (e *evaluator) visitUnaryExpression(expr *unaryExpression) (any, error) {
 
 			return -v, nil
 		}
-	case TokenLexemes[PLUS]:
+	case tokenLexemes[PLUS]:
 		{
 			return value, nil
 		}
-	case TokenLexemes[BANG]:
+	case tokenLexemes[BANG]:
 		{
 			return !isTruthy(value), nil
 		}

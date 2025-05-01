@@ -119,7 +119,7 @@ func parse(filePath string) {
 	defer file.Close()
 
 	l := lox.NewLox()
-	statements, err := l.Parse(file)
+	expr, err := l.ParseExpression(file)
 	if err != nil {
 		if errors.As(err, &lox.SyntaxError{}) {
 			fmt.Fprint(os.Stderr, err.Error())
@@ -129,7 +129,7 @@ func parse(filePath string) {
 		logger.Fatalf("Failed to parse the file: %v", err)
 	}
 
-	out, err := lox.Format(statements)
+	out, err := lox.FormatExpression(expr)
 	if err != nil {
 		panic(err)
 	}

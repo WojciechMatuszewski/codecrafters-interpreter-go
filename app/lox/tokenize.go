@@ -154,7 +154,7 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 			}
 		case "\"":
 			{
-				contents := ""
+				contents := make([]byte, 0)
 				for {
 					bt, err := reader.ReadByte()
 					if err != nil {
@@ -166,20 +166,18 @@ func (l *Lox) Tokenize(r io.Reader) (TokenizeResult, error) {
 						break
 					}
 
-					st := string(bt)
-					if st == "\n" {
+					if bt == '\n' {
 						line += 1
-						contents += st
-
+						contents = append(contents, bt)
 						continue
 					}
 
-					if st == "\"" {
-						tokens = append(tokens, newStringToken(contents, line))
+					if bt == '"' {
+						tokens = append(tokens, newStringToken(string(contents), line))
 						break
 					}
 
-					contents += st
+					contents = append(contents, bt)
 				}
 			}
 		case " ":

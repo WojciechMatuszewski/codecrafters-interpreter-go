@@ -3,7 +3,6 @@ package lox
 import (
 	"fmt"
 	"io"
-	"strings"
 )
 
 type RuntimeError struct {
@@ -37,8 +36,10 @@ func (l *Lox) Run(r io.Reader) (any, error) {
 			return nil, err
 		}
 
-		if out != nil {
-			result += strings.ToValidUTF8(fmt.Sprintf("%v", out), "")
+		if str, ok := out.(string); ok {
+			result += str
+		} else {
+			result += fmt.Sprintf("%v", out)
 		}
 	}
 
@@ -57,7 +58,7 @@ func (e *evaluator) visitPrintStatement(statement *printStatement) (any, error) 
 		return nil, err
 	}
 
-	return fmt.Sprintf("%v\n", out), err
+	return fmt.Sprintf("%v\n", out), nil
 }
 
 func (e *evaluator) visitExprStatement(statement *exprStatement) (any, error) {

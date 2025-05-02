@@ -23,32 +23,27 @@ func (l *Lox) Evaluate(r io.Reader) (any, error) {
 	return expr.accept(&evaluator{})
 }
 
-// TODO: We do not want to return anything here.
-// We should write to STDIO, but how to make it robust?
-func (l *Lox) Run(r io.Reader) (any, error) {
-	statements, err := l.Parse(r)
+func (l *Lox) Run(input io.Reader, output io.Writer) error {
+	statements, err := l.Parse(input)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var result string
 	for _, statement := range statements {
 		out, err := statement.accept(&evaluator{})
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if out != nil {
-			result += fmt.Sprintf("%v\n", out)
+			_, err = output.Write([]byte(fmt.Sprintf("%v\n", out)))
+			if err != nil {
+				return fmt.Errorf("failed to write to output: %w", err)
+			}
 		}
-
 	}
 
-	if result == "" {
-		return nil, nil
-	}
-
-	return result, nil
+	return nil
 }
 
 type evaluator struct{}

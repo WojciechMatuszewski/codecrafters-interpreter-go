@@ -200,14 +200,25 @@ func TestRun(t *testing.T) {
 			expectedOut: "36\n10\n78\n\nfoo\n",
 			expectedErr: "",
 		},
+		{
+			input:       "27 - 60 >= -99 * 2 / 99 + 76;\ntrue == true;\n(\"world\" == \"bar\") == (\"baz\" != \"hello\");\nprint true;",
+			expectedOut: "true\n",
+			expectedErr: "",
+		},
+		{
+			input:       "print \"the expression below is invalid\";\n49 + \"baz\";\nprint \"this should not be printed\";\n",
+			expectedOut: "the expression below is invalid\n",
+			expectedErr: "Operands must be two numbers or two strings.\n[line 2]",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			r := bytes.NewReader([]byte(tt.input))
+			input := bytes.NewReader([]byte(tt.input))
+			output := bytes.NewBuffer([]byte(""))
 
 			l := lox.NewLox()
-			result, err := l.Run(r)
+			err := l.Run(input, output)
 
 			if err != nil && tt.expectedErr == "" {
 				t.Fatalf("did not expect error, but got: %v", err)
@@ -217,12 +228,13 @@ func TestRun(t *testing.T) {
 				t.Errorf("\nexpected error:\n%q\ngot:\n%q\n", tt.expectedErr, err.Error())
 			}
 
+			result := output.String()
 			out := fmt.Sprint(result)
-			if result == nil && tt.expectedOut != "" && tt.expectedOut != "<nil>" {
+			if result == "" && tt.expectedOut != "" && tt.expectedOut != "<nil>" {
 				t.Fatalf("did not expect output, but got: %v", out)
 			}
 
-			if result != nil && out != tt.expectedOut {
+			if result != "" && out != tt.expectedOut {
 				t.Errorf("\nexpected output:\n%q\ngot:\n%q\n", tt.expectedOut, out)
 			}
 		})

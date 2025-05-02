@@ -60,7 +60,7 @@ func run(filePath string) {
 	defer file.Close()
 
 	l := lox.NewLox()
-	out, err := l.Run(file)
+	err = l.Run(file, os.Stdout)
 	if err != nil {
 		if errors.As(err, &lox.RuntimeError{}) {
 			fmt.Fprint(os.Stderr, err.Error())
@@ -73,14 +73,6 @@ func run(filePath string) {
 		}
 
 		logger.Fatalf("Failed to evaluate the file: %v", err)
-	}
-
-	if out == nil {
-		// By default, nil formats as <nil>.
-		// I could not find any formatting verbs to format is as just "nil"
-		fmt.Fprint(os.Stdout, "nil")
-	} else {
-		fmt.Fprint(os.Stdout, out)
 	}
 }
 
